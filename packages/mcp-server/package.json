@@ -1,0 +1,13 @@
+{
+  "name": "@theme-ai/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "bun build",
+    "start": "node dist/server.js",
+    "dev": "bun run src/server.ts",
+    "test": "bun test src/llmService.test.ts"
+  }
+}

@@ -2,10 +2,16 @@
   "name": "theme-ai-generator",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "cd apps/web && bun run dev",
+    "mcp:dev": "cd packages/mcp-server && bun run dev",
+    "build": "cd apps/web && bun run build",
+    "start": "cd apps/web && bun run start",
     "lint": "biome check",
     "format": "biome format --write"
   },
