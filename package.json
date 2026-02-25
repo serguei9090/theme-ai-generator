@@ -9,11 +9,16 @@
   ],
   "scripts": {
     "dev": "cd apps/web && bun run dev",
-    "mcp:dev": "cd packages/mcp-server && bun run dev",
+    "mcp:dev": "cd apps/web && bun src/lib/mcp-server/server.ts",
     "build": "cd apps/web && bun run build",
     "start": "cd apps/web && bun run start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "typecheck": "bun run typecheck:web",
+    "typecheck:web": "bunx tsc --project apps/web/tsconfig.json --noEmit",
+    "test": "bun run test:web",
+    "test:web": "cd apps/web && bun run test",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "next": "16.1.6",
@@ -26,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "lefthook": "^1.12.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

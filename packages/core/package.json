@@ -1,0 +1,14 @@
+{
+  "name": "@theme-ai/core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@github/copilot-sdk": "^0.1.26",
+    "@google/genai": "^1.42.0"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20"
+  }
+}
