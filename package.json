@@ -11,6 +11,8 @@
     "dev": "cd apps/web && bun run dev",
     "mcp": "bun run packages/mcp-server/src/server.ts",
     "mcp:dev": "bun --watch packages/mcp-server/src/server.ts",
+    "build:mcp": "bun build packages/mcp-server/src/server.ts --outfile packages/mcp-server/dist/index.js --bundle --target bun",
+    "compile:mcp": "bun build packages/mcp-server/src/server.ts --compile --outfile mcp-server",
     "build": "bun run build:web",
     "build:web": "cd apps/web && bun run build",
     "start": "bun run start:web",

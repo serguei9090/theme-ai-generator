@@ -11,5 +11,12 @@
   "devDependencies": {
     "typescript": "^5",
     "@types/node": "^20"
+  },
+  "bin": {
+    "theme-ai-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build src/server.ts --outfile dist/index.js --bundle --target bun",
+    "compile": "bun build src/server.ts --compile --outfile mcp-server"
   }
 }

@@ -169,27 +169,62 @@ The Native MCP server allows you to generate color systems directly inside your 
 If you exclusively want to use the MCP features:
 1.  **Clone & Install**: `git clone ... && bun install`
 2.  **Configure**: `cp packages/mcp-server/.env.example packages/mcp-server/.env`
-3.  **Run**: `bun run mcp:dev` (Starts the server on port `41234` by default)
+3.  **Run**: `bun run mcp:dev` (Starts the server @ port `41234`)
+4.  **Verify**: `bun run test:manual-mcp` (Runs a diagnostic generation test)
 
 ### 🔌 Integration Examples
 
-Add the following to your application's MCP configuration:
+There are three ways to run this server depending on your environment:
 
-#### Claude Desktop
-File: `%APPDATA%\Claude\claude_desktop_config.json`
+#### Option 1: Local Source (Developer Recommended)
+Best if you are actively editing the code or using a local clone.
 ```json
 {
   "mcpServers": {
     "theme-ai": {
       "command": "bun",
-      "args": ["run", "C:/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"]
+      "args": ["run", "C:/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"],
+      "env": { "DEFAULT_PROVIDER": "ollama" }
+    }
+  }
+}
+```
+
+#### Option 2: Portable Binary (Speed & Reliability)
+You can compile the server into a single standalone executable.
+1. Build it: `bun run compile:mcp` (Generates `mcp-server.exe` on Windows)
+2. Use it:
+```json
+{
+  "mcpServers": {
+    "theme-ai": {
+      "command": "C:/path/to/theme-ai-generator/mcp-server.exe",
+      "env": { "DEFAULT_PROVIDER": "ollama" }
+    }
+  }
+}
+```
+
+#### Option 3: GitHub Hub (Public Tool)
+If the project is public, you can reach the logic via the published link.
+*Note: Due to our Monorepo structure, we recommend installing the package once via bun to cache dependencies.*
+```bash
+bun install -g github:serguei9090/theme-ai-generator/packages/mcp-server
+```
+Then use:
+```json
+{
+  "mcpServers": {
+    "theme-ai": {
+      "command": "theme-ai-mcp", 
+      "env": { "DEFAULT_PROVIDER": "ollama" }
     }
   }
 }
 ```
 
 #### VS Code (Roo-Code / Antigravity)
-Add to your custom MCP settings:
+Add this to your custom MCP settings for a tailored local experience:
 ```json
 {
   "mcpServers": {
@@ -197,14 +232,14 @@ Add to your custom MCP settings:
       "command": "bun",
       "args": ["run", "C:/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"],
       "env": {
-        "GEMINI_API_KEY": "your_key_here",
-        "DEFAULT_PROVIDER": "gemini"
+        "DEFAULT_PROVIDER": "ollama",
+        "OLLAMA_URL": "http://localhost:11434"
       }
     }
   }
 }
 ```
-*Note: You can pass environment variables directly in the config if you don't want to use a `.env` file.*
+*Note: You can pass environment variables directly in the JSON config to override your `.env` file.*
 
 ---
 
@@ -270,6 +305,7 @@ For performance-critical environments or final demos:
 ### 🧪 Testing & Quality
 - **Typecheck**: `bun run typecheck`
 - **Run All Tests**: `bun run test`
+- **Manual MCP Diagnostic**: `bun run test:manual-mcp` (Generates a sample palette via terminal)
 
 ---
 
