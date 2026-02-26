@@ -13,8 +13,8 @@ Flow:
 - `Creative Apps (GitHub Copilot)`
 
 ### Developers / Team
-- **[Your Name]** - [@yourgithub](https://github.com/yourgithub)
-- *(Add any other team members here)*
+- **Serguei Castillo** - [@serguei9090](https://github.com/serguei9090)
+- **Cinthya Rodriguez** - [@crhdez](https://github.com/crhdez)
 
 ### Project Description (submission-ready draft)
 Theme AI Generator is a creative productivity application for designers and developers who need fast palette exploration with practical UI context. Users chat with an AI assistant to generate a five-color system (`primary`, `secondary`, `accent`, `background`, `text`), then immediately preview the palette on enterprise-grade mock interfaces across website, analytics web app, desktop workspace, and mobile patterns.  
@@ -28,20 +28,31 @@ The project focuses on creative speed, consistent output contracts, and practica
 - **Visual Gallery**: See our [Mockup & UI Gallery](./docs/screenshots/README.md)
 - **Copilot Evidence**: Read the [Prompt Highlights](./docs/PROMPT_HIGHLIGHTS.md) (Curated) or the [Full Log](./docs/copilot_prompt_respopnse-RAW.md).
 
-### 🖼️ UI & Mockup Gallery
+### 🐳 Docker & Fast Setup (Testing)
 
-| Web Interface | Website Preview | Web App Analytics |
-| :---: | :---: | :---: |
-| ![Chat Interface](./docs/screenshots/01-chat-generation.png) | ![Website](./docs/screenshots/03-website-preview.png) | ![Web App](./docs/screenshots/04-webapp-preview.png) |
+For quick testing or to containerize the application, you can use Docker or our "mini" environment configuration.
 
-| Desktop Workspace | Mobile Experience | Settings & Logic |
-| :---: | :---: | :---: |
-| ![Desktop](./docs/screenshots/05-desktop-preview.png) | ![Mobile](./docs/screenshots/06-mobile-preview.png) | ![Settings](./docs/screenshots/07-Setting.png) |
+#### Option A: Quick Local Start (One-Liner)
+If you have `bun` and `ollama` (running) installed, run this to start the app in one command:
+```bash
+bun install && cp .env.example.mini .env && bun run dev:web
+```
 
-*(Full gallery available in [docs/screenshots](./docs/screenshots))*
+#### Option B: Docker Testing
+To test the project in a clean environment using Docker:
+1.  **Build the image**:
+    ```bash
+    docker build -t theme-ai-web .
+    ```
+2.  **Run the container**:
+    ```bash
+    docker run -p 3000:3000 --env-file .env.example.mini theme-ai-web
+    ```
+    *Note: If connecting to a local Ollama instance on your host, ensure `OLLAMA_URL` is set to `http://host.docker.internal:11434` in your `.env`.*
 
+---
 
-### Quick Setup Summary
+## Quick Setup Summary
 
 The repository is built as a **Monorepo** with two completely independent entry points. You can run either the web app or the native MCP Server, or both depending on your needs.
 

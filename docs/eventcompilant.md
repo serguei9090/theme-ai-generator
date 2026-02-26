@@ -83,11 +83,11 @@ To bridge the gap from **88/90** to a perfect **100/100** (post-voting), focus o
 | **Copilot Usage Evidence** | ✅ | Curated moments in `PROMPT_HIGHLIGHTS.md`. |
 | **Screenshot Gallery** | ✅ | 6+ high-res previews in `docs/screenshots`. |
 | **README Metadata** | ✅ | Team name and project description updated. |
-| **GitHub Public Repo** | ⏳ | **REQUIRED**: Push code to a public repository. |
+| **GitHub Public Repo** | ✅ | **URL**: https://github.com/serguei9090/theme-ai-generator |
 | **Demo Video** | ⏳ | **REQUIRED**: Record a 2-3 min walkthrough. |
 | **Registration** | ✅ | Participant status confirmed at `aka.ms/agentsleague/register`. |
-| **Project Submission** | ⏳ | Open issue in Microsoft repo once URL/Video are ready. |
+| **Project Submission** | ⏳ | Open issue in Microsoft repo once Video is ready. |
 
 > [!TIP]
-> **Priority One**: Focus on the **Demo Video**. It is the most weighted component for the "User Experience & Presentation" score.
+> **Priority One**: Focus on the **Demo Video**. It is the final requirement needed to unlock the official project submission issue.
 
