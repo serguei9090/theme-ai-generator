@@ -1,5 +1,7 @@
 # Theme AI Generator
 
+[![CI](https://github.com/serguei9090/theme-ai-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/serguei9090/theme-ai-generator/actions/workflows/ci.yml)
+
 Creative Theme AI Generator is a multi-surface design assistant that helps users generate and refine UI color palettes using chat, then preview the result across realistic Website, Web App, Desktop App, and Mobile App mockups.
 
 Flow:
