@@ -238,7 +238,10 @@ export default function ChatWindow() {
         {messages.map((m) => (
           <div
             key={m.id}
-            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+            className={[
+              "flex",
+              m.role === "user" ? "justify-end" : "justify-start",
+            ].join(" ")}
           >
             <div className={getMessageClass(m)}>
               <p className="whitespace-pre-wrap text-sm">{m.text}</p>
@@ -258,7 +261,10 @@ export default function ChatWindow() {
               {m.toolUsed && (
                 <div className="mt-1.5 flex items-center gap-1.5">
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${TOOL_BADGE_CLASS[m.toolUsed as ToolUsed] ?? ""}`}
+                    className={[
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      TOOL_BADGE_CLASS[m.toolUsed as ToolUsed] ?? "",
+                    ].join(" ")}
                   >
                     {TOOL_BADGE_LABEL[m.toolUsed as ToolUsed]}
                   </span>
@@ -374,11 +380,12 @@ export default function ChatWindow() {
                     setForcedTool(null);
                     setToolPickerOpen(false);
                   }}
-                  className={`flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface ${
+                  className={[
+                    "flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface",
                     forcedTool == null
                       ? "bg-primary/8 text-primary"
-                      : "text-text-secondary"
-                  }`}
+                      : "text-text-secondary",
+                  ].join(" ")}
                 >
                   <Wand2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <div>
@@ -399,11 +406,12 @@ export default function ChatWindow() {
                       setForcedTool(tool.id);
                       setToolPickerOpen(false);
                     }}
-                    className={`flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface ${
+                    className={[
+                      "flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface",
                       forcedTool === tool.id
                         ? "bg-primary/8 text-primary"
-                        : "text-text-secondary"
-                    }`}
+                        : "text-text-secondary",
+                    ].join(" ")}
                   >
                     <span className="mt-0.5 shrink-0">{tool.icon}</span>
                     <div>

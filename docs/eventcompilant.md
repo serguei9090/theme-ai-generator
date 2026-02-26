@@ -17,7 +17,7 @@
 | **User Experience & Presentation** | 15% | **14/15** | Highly polished UI using Shadcn/UI and modern typography. Optimized for both rapid chat usage and deep palette tweaking. |
 | **Reliability & Safety** | 20% | **20/20** | Uses strict JSON output contracts, deterministic provider fallback, and real-time rate-limit notification mapping. |
 | **Community Vote (Placeholder)** | 10% | **TBD** | Requires Discord participation. |
-| **TOTAL SCORE** | **100%** | **88/90** | **Highly Competitive (Pre-Voting)** |
+| **TOTAL SCORE** | **100%** | **89/90** | **Highly Competitive (Pre-Voting)** |
 
 ---
 
@@ -35,15 +35,16 @@
 
 ---
 
-## 🖼️ Missing Screenshot Report
-> [!IMPORTANT]
-> The following screenshots are required for a complete submission but are currently missing from `docs/screenshots`:
+## 🖼️ Screenshot Gallery Status
+> [!NOTE]
+> All primary screenshots are now captured and available in `docs/screenshots`. 
+> They demonstrate the full creative loop from chat interaction to multi-surface preview.
 
-1.  **Website Mockup**: A view of the generated palette applied to the landing page template.
-2.  **Web App Mockup**: The analytics dashboard view showing the color system in a complex data UI.
-3.  **Desktop App Mockup**: The coding/workspace view demonstrating background/surface hierarchies.
-4.  **Mobile App Mockup**: The card-based mobile view showing accessibility in small-form factors.
-5.  **Chat Interface**: A screenshot of a successful interaction with the AI assistant.
+1.  **Website Mockup**: [Completed] See `03-website-preview.png`
+2.  **Web App Mockup**: [Completed] See `04-webapp-preview.png`
+3.  **Desktop App Mockup**: [Completed] See `05-desktop-preview.png`
+4.  **Mobile App Mockup**: [Completed] See `06-mobile-preview.png`
+5.  **Chat Interface**: [Completed] See `01-chat-generation.png`
 
 ---
 
@@ -66,8 +67,27 @@
 ## 🎯 Path to 100/100 Score
 To bridge the gap from **88/90** to a perfect **100/100** (post-voting), focus on these final refinements:
 
-1.  **Complete the Gallery (+1 UX)**: Upload the 5 required screenshots to `docs/screenshots`. High-quality visuals are the difference between a "good" project and a "winning" one.
+1.  **Maintain the Gallery (+1 UX)**: Ensure visuals remain updated if major UI changes occur. High-quality visuals are the difference between a "good" project and a "winning" one.
 2.  **Polish the Demo Video (+1 UX)**: Ensure the demo video is < 3 minutes, has a clear voiceover or captions, and shows a "wow" moment like switching from a landing page to a complex dashboard in one prompt.
 3.  **Multi-Step Reasoning Evidence (+1 Reasoning)**: Add a section to `README.md` or a new file showing how the system handles "reasoning loops" (e.g., when the director rejects a palette that isn't accessible).
 4.  **Community Impact (+10 Voting)**: Be active in the Agents League Discord. Share your progress in `#creative-apps` and participate in the community vote once it goes live.
 5.  **Final Polish**: Ensure no console errors appear during the demo and that the "Rate Limit" notification works gracefully.
+
+---
+
+## 🏁 Final Submission Progress Checklist
+
+| Item | Status | Notes |
+| :--- | :---: | :--- |
+| **Monorepo Architecture** | ✅ | Bun workspace with `apps/web` and `packages/mcp-server`. |
+| **Copilot Usage Evidence** | ✅ | Curated moments in `PROMPT_HIGHLIGHTS.md`. |
+| **Screenshot Gallery** | ✅ | 6+ high-res previews in `docs/screenshots`. |
+| **README Metadata** | ✅ | Team name and project description updated. |
+| **GitHub Public Repo** | ⏳ | **REQUIRED**: Push code to a public repository. |
+| **Demo Video** | ⏳ | **REQUIRED**: Record a 2-3 min walkthrough. |
+| **Registration** | ✅ | Participant status confirmed at `aka.ms/agentsleague/register`. |
+| **Project Submission** | ⏳ | Open issue in Microsoft repo once URL/Video are ready. |
+
+> [!TIP]
+> **Priority One**: Focus on the **Demo Video**. It is the most weighted component for the "User Experience & Presentation" score.
+

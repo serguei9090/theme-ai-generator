@@ -2,7 +2,7 @@
 
 Judges typically look for **meaningful collaboration** with Copilot. Here are the curated "Star Moments" where GitHub Copilot acted as a senior architect for this project.
 
-The full conversation history is available in [docs/copilot_prompt_respopnse.md](./copilot_prompt_respopnse.md).
+The full conversation history is available in [docs/copilot_prompt_respopnse-RAW.md](./copilot_prompt_respopnse-RAW.md).
 
 ---
 

@@ -154,15 +154,13 @@ export async function interpretColorIntent(
     JSON.stringify(currentPalette, null, 2),
   ].join("\n");
 
-  const raw = await providerPrompt(
-    provider,
-    contextPrompt,
+  const raw = await providerPrompt(provider, contextPrompt, {
     model,
     geminiApiKey,
     openaiApiKey,
     copilotApiKey,
-    COLOR_INTENT_SYSTEM_PROMPT,
-  );
+    systemPrompt: COLOR_INTENT_SYSTEM_PROMPT,
+  });
 
   const parsed = extractJsonFromText(raw);
   if (!parsed) {
@@ -256,7 +254,7 @@ function getRateLimitErrorMessage(
 
 function parseGeminiError(msg: string): string | null {
   try {
-    const jsonMatch = msg.match(/\{[\s\S]*\}/);
+    const jsonMatch = /\{[\s\S]*\}/.exec(msg);
     if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]);
     const err = parsed.error;
@@ -264,7 +262,10 @@ function parseGeminiError(msg: string): string | null {
       const retryDelay = err.details?.find(
         (d: { retryDelay?: string }) => d.retryDelay,
       )?.retryDelay;
-      return `Gemini Rate Limit reached. ${retryDelay ? `Please retry in ${retryDelay}.` : "Please wait a moment before trying again."}`;
+      const retryMessage = retryDelay
+        ? `Please retry in ${retryDelay}.`
+        : "Please wait a moment before trying again.";
+      return `Gemini Rate Limit reached. ${retryMessage}`;
     }
     if (err?.message) return `Gemini Error: ${err.message}`;
   } catch {
@@ -917,16 +918,28 @@ export async function listCopilotModels(
   }
 }
 
+export interface ProviderPromptOptions {
+  model?: string;
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+  copilotApiKey?: string;
+  systemPrompt?: string;
+  history?: { role: "user" | "assistant"; text: string }[];
+}
+
 export async function providerPrompt(
   provider: Provider,
   prompt: string,
-  model?: string,
-  geminiApiKey?: string,
-  openaiApiKey?: string,
-  copilotApiKey?: string,
-  systemPrompt?: string,
-  history?: { role: "user" | "assistant"; text: string }[],
+  options: ProviderPromptOptions = {},
 ): Promise<string> {
+  const {
+    model,
+    geminiApiKey,
+    openaiApiKey,
+    copilotApiKey,
+    systemPrompt,
+    history,
+  } = options;
   const historyText = history?.length
     ? "Previous conversation context:\n" +
       history
@@ -968,16 +981,13 @@ export async function routeToProvider(
   const reasoningPrompt = buildReasoningPrompt(prompt, plan);
 
   try {
-    const content = await providerPrompt(
-      provider,
-      reasoningPrompt,
-      options.model,
-      options.geminiApiKey,
-      options.openaiApiKey,
-      options.copilotApiKey,
-      undefined,
-      options.history,
-    );
+    const content = await providerPrompt(provider, reasoningPrompt, {
+      model: options.model,
+      geminiApiKey: options.geminiApiKey,
+      openaiApiKey: options.openaiApiKey,
+      copilotApiKey: options.copilotApiKey,
+      history: options.history,
+    });
     const { palette, explain } = parsePaletteText(content);
     const adjustedPalette = enforcePaletteAccessibility(palette);
     const wasAdjusted = adjustedPalette.text !== palette.text;
@@ -1092,16 +1102,14 @@ export async function discoverStyles(
   const model = options.model || undefined;
 
   try {
-    const content = await providerPrompt(
-      provider,
-      message,
+    const content = await providerPrompt(provider, message, {
       model,
-      options.geminiApiKey,
-      options.openaiApiKey,
-      options.copilotApiKey,
-      DIRECTOR_SYSTEM_PROMPT,
-      options.history,
-    );
+      geminiApiKey: options.geminiApiKey,
+      openaiApiKey: options.openaiApiKey,
+      copilotApiKey: options.copilotApiKey,
+      systemPrompt: DIRECTOR_SYSTEM_PROMPT,
+      history: options.history,
+    });
 
     const parsed = parseJson(content);
     return sanitizeDirectorStyles(parsed, message);

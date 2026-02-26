@@ -4,6 +4,7 @@ import {
   discoverStyles,
   enforcePaletteAccessibility,
   evaluatePaletteAccessibility,
+  interpretColorIntent,
   PALETTE_KEYS,
   type Palette,
   routeToProvider,
@@ -194,6 +195,86 @@ describe("llmService", () => {
       it("enforcePaletteAccessibility leaves good contrast alone", () => {
         const fixed = enforcePaletteAccessibility(goodPalette);
         expect(fixed).toEqual(goodPalette);
+      });
+    });
+
+    describe("interpretColorIntent", () => {
+      it("interprets color intent successfully", async () => {
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = (async (_url: string, _init: any) => {
+          return new Response(
+            JSON.stringify({
+              message: {
+                content: JSON.stringify({
+                  hex: "#2d6a4f",
+                  interpretation: "Rich forest green for primary",
+                }),
+              },
+            }),
+            { status: 200 },
+          );
+        }) as typeof fetch;
+
+        const result = await interpretColorIntent({
+          key: "primary",
+          userPrompt: "forest green",
+          currentPalette: { primary: "#000000" } as any,
+          provider: "ollama",
+        });
+
+        expect(result.hex).toBe("#2d6a4f");
+        expect(result.interpretation).toBe("Rich forest green for primary");
+        globalThis.fetch = originalFetch;
+      });
+
+      it("handles invalid JSON response", async () => {
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = (async () => {
+          return new Response(
+            JSON.stringify({
+              message: {
+                content: "Not JSON",
+              },
+            }),
+            { status: 200 },
+          );
+        }) as typeof fetch;
+
+        expect(
+          interpretColorIntent({
+            key: "primary",
+            userPrompt: "forest green",
+            currentPalette: { primary: "#000000" } as any,
+            provider: "ollama",
+          }),
+        ).rejects.toThrow(/unparseable response/);
+        globalThis.fetch = originalFetch;
+      });
+
+      it("handles invalid hex in response", async () => {
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = (async (_url: string, _init: any) => {
+          return new Response(
+            JSON.stringify({
+              message: {
+                content: JSON.stringify({
+                  hex: "invalid",
+                }),
+              },
+            }),
+            { status: 200 },
+          );
+        }) as typeof fetch;
+
+        expect(
+          interpretColorIntent({
+            key: "primary",
+            userPrompt: "forest green",
+            currentPalette: { primary: "#000000" } as any,
+            provider: "ollama",
+          }),
+        ).rejects.toThrow(/invalid hex/);
+        globalThis.fetch = originalFetch;
       });
     });
   });

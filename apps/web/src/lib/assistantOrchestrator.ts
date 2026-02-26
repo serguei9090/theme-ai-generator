@@ -260,15 +260,13 @@ async function resolveTweakUpdates(args: {
 
   let raw = "";
   try {
-    raw = await providerPrompt(
-      args.provider as Provider,
-      userMessage,
-      args.model,
-      args.geminiApiKey,
-      args.openaiApiKey,
-      args.copilotApiKey,
-      TWEAK_RESOLVER_SYSTEM_PROMPT,
-    );
+    raw = await providerPrompt(args.provider as Provider, userMessage, {
+      model: args.model,
+      geminiApiKey: args.geminiApiKey,
+      openaiApiKey: args.openaiApiKey,
+      copilotApiKey: args.copilotApiKey,
+      systemPrompt: TWEAK_RESOLVER_SYSTEM_PROMPT,
+    });
   } catch {
     return {};
   }
@@ -556,12 +554,14 @@ export async function handleAssistantMessage(
     const agentResponse = await providerPrompt(
       directorProvider as Provider,
       directorMessage,
-      directorModel,
-      directorGeminiApiKey,
-      directorApiKey,
-      directorCopilotApiKey,
-      DIRECTOR_SYSTEM_PROMPT,
-      history,
+      {
+        model: directorModel,
+        geminiApiKey: directorGeminiApiKey,
+        openaiApiKey: directorApiKey,
+        copilotApiKey: directorCopilotApiKey,
+        systemPrompt: DIRECTOR_SYSTEM_PROMPT,
+        history,
+      },
     );
 
     if (isDebug) {

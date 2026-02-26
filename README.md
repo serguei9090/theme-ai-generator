@@ -12,6 +12,10 @@ Flow:
 ### Track
 - `Creative Apps (GitHub Copilot)`
 
+### Developers / Team
+- **[Your Name]** - [@yourgithub](https://github.com/yourgithub)
+- *(Add any other team members here)*
+
 ### Project Description (submission-ready draft)
 Theme AI Generator is a creative productivity application for designers and developers who need fast palette exploration with practical UI context. Users chat with an AI assistant to generate a five-color system (`primary`, `secondary`, `accent`, `background`, `text`), then immediately preview the palette on enterprise-grade mock interfaces across website, analytics web app, desktop workspace, and mobile patterns.  
 
@@ -21,8 +25,20 @@ The project focuses on creative speed, consistent output contracts, and practica
 
 ### Demo Materials
 - **Demo Video**: [YouTube Link (Replace Me)](https://youtube.com/watch?v=REPLACE_ME)
-- **Screenshot Gallery**: View the [Submission Tips](./docs/SUBMISSION_TIPS.md) and see [`docs/screenshots`](./docs/screenshots)
-- **Copilot Evidence**: Read the [Prompt Highlights](./docs/PROMPT_HIGHLIGHTS.md) (Curated) or the [Full Log](./docs/copilot_prompt_respopnse.md).
+- **Visual Gallery**: See our [Mockup & UI Gallery](./docs/screenshots/README.md)
+- **Copilot Evidence**: Read the [Prompt Highlights](./docs/PROMPT_HIGHLIGHTS.md) (Curated) or the [Full Log](./docs/copilot_prompt_respopnse-RAW.md).
+
+### 🖼️ UI & Mockup Gallery
+
+| Web Interface | Website Preview | Web App Analytics |
+| :---: | :---: | :---: |
+| ![Chat Interface](./docs/screenshots/01-chat-generation.png) | ![Website](./docs/screenshots/03-website-preview.png) | ![Web App](./docs/screenshots/04-webapp-preview.png) |
+
+| Desktop Workspace | Mobile Experience | Settings & Logic |
+| :---: | :---: | :---: |
+| ![Desktop](./docs/screenshots/05-desktop-preview.png) | ![Mobile](./docs/screenshots/06-mobile-preview.png) | ![Settings](./docs/screenshots/07-Setting.png) |
+
+*(Full gallery available in [docs/screenshots](./docs/screenshots))*
 
 
 ### Quick Setup Summary

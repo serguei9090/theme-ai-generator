@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "test": "bun test src/lib/*.test.ts"
+    "test": "bun test --preload ./src/setupTests.ts src/lib/*.test.ts src/components/**/*.test.tsx src/providers/*.test.ts"
   },
   "dependencies": {
     "@github/copilot-sdk": "^0.1.26",
@@ -38,9 +38,12 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "happy-dom": "^20.7.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

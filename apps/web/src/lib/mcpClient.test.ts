@@ -70,6 +70,7 @@ describe("mcpClient", () => {
 
     it("defaults to ollama for invalid input", () => {
       expect(normalizeProvider(undefined)).toBe("ollama");
+      // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input for test
       expect(normalizeProvider("unknown" as any)).toBe("ollama");
     });
 
@@ -92,8 +93,8 @@ describe("mcpClient", () => {
 
     try {
       await generateThemePalette({ mood: "fail" });
-    } catch (error: any) {
-      expect(error.message).toContain("Ollama likely timed out");
+    } catch (error) {
+      expect((error as Error).message).toContain("Ollama likely timed out");
     }
     globalThis.fetch = originalFetch;
   });

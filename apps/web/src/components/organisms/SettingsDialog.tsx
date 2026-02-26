@@ -335,6 +335,51 @@ export default function SettingsDialog() {
     setModel(defaultModel);
   }
 
+  let ollamaButtonText = "Connect";
+  if (connecting) {
+    ollamaButtonText = "Connecting...";
+  } else if (ollamaConnected) {
+    ollamaButtonText = "Disconnect";
+  }
+
+  let directorModelOptions: React.ReactNode;
+  if (connecting) {
+    directorModelOptions = <option disabled>Discovering models...</option>;
+  } else if (directorProvider === "copilot" && copilotModels.length > 0) {
+    directorModelOptions = copilotModels.map((m) => (
+      <option key={m.value} value={m.value}>
+        {m.label}
+      </option>
+    ));
+  } else {
+    directorModelOptions = PREDEFINED_MODELS[
+      directorProvider as Exclude<Provider, "ollama">
+    ]?.map((m) => (
+      <option key={m.value} value={m.value}>
+        {m.label}
+      </option>
+    ));
+  }
+
+  let modelOptions: React.ReactNode;
+  if (connecting) {
+    modelOptions = <option disabled>Discovering models...</option>;
+  } else if (provider === "copilot" && copilotModels.length > 0) {
+    modelOptions = copilotModels.map((m) => (
+      <option key={m.value} value={m.value}>
+        {m.label}
+      </option>
+    ));
+  } else {
+    modelOptions = PREDEFINED_MODELS[
+      provider as Exclude<Provider, "ollama">
+    ]?.map((m) => (
+      <option key={m.value} value={m.value}>
+        {m.label}
+      </option>
+    ));
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -454,11 +499,7 @@ export default function SettingsDialog() {
                 <div className="mt-2 flex flex-col gap-2">
                   <div className="flex gap-2">
                     <Button onClick={handleToggleOllamaConnection} size="sm">
-                      {connecting
-                        ? "Connecting..."
-                        : ollamaConnected
-                          ? "Disconnect"
-                          : "Connect"}
+                      {ollamaButtonText}
                     </Button>
                     <div className="flex-1">
                       <label
@@ -505,24 +546,7 @@ export default function SettingsDialog() {
                     <option value="" disabled>
                       Select a model
                     </option>
-                    {connecting ? (
-                      <option disabled>Discovering models...</option>
-                    ) : directorProvider === "copilot" &&
-                      copilotModels.length > 0 ? (
-                      copilotModels.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))
-                    ) : (
-                      PREDEFINED_MODELS[
-                        directorProvider as Exclude<Provider, "ollama">
-                      ]?.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))
-                    )}
+                    {directorModelOptions}
                     {directorProvider === "copilot" &&
                       !connecting &&
                       copilotModels.length === 0 && (
@@ -694,11 +718,7 @@ export default function SettingsDialog() {
                 <div className="mt-2 flex flex-col gap-2">
                   <div className="flex gap-2">
                     <Button onClick={handleToggleOllamaConnection} size="sm">
-                      {connecting
-                        ? "Connecting..."
-                        : ollamaConnected
-                          ? "Disconnect"
-                          : "Connect"}
+                      {ollamaButtonText}
                     </Button>
                     <div className="flex-1">
                       <label className="sr-only" htmlFor="ollama-model-select">
@@ -739,23 +759,7 @@ export default function SettingsDialog() {
                     <option value="" disabled>
                       Select a model
                     </option>
-                    {connecting ? (
-                      <option disabled>Discovering models...</option>
-                    ) : provider === "copilot" && copilotModels.length > 0 ? (
-                      copilotModels.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))
-                    ) : (
-                      PREDEFINED_MODELS[
-                        provider as Exclude<Provider, "ollama">
-                      ]?.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))
-                    )}
+                    {modelOptions}
                     {provider === "copilot" &&
                       !connecting &&
                       copilotModels.length === 0 && (

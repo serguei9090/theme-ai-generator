@@ -4,20 +4,27 @@ import type { Palette } from "./mcpClient";
 
 // Mock @theme-ai/core
 mock.module("@theme-ai/core", () => ({
-  providerPrompt: async (provider: any, prompt: any) => {
-    if (prompt === "generate") {
+  providerPrompt: async (
+    _provider: unknown,
+    prompt: string,
+    _options: unknown,
+  ) => {
+    if (prompt.includes("CURRENT PALETTE")) {
+      return JSON.stringify({ primary: "#ffffff" });
+    }
+    if (prompt.includes("generate")) {
       return JSON.stringify({
         tool: "generate_palette",
         moodPrompt: "Generated mood",
       });
     }
-    if (prompt === "discover") {
+    if (prompt.includes("discover")) {
       return JSON.stringify({
         tool: "discover_styles",
         message: "Discovery message",
       });
     }
-    if (prompt === "tweak") {
+    if (prompt.includes("tweak")) {
       return JSON.stringify({
         tool: "tweak_palette",
         mood: "Tweak mood",
@@ -73,7 +80,7 @@ describe("assistantOrchestrator", () => {
     const result = await handleAssistantMessage({
       message: "tweak",
       conversationId: "test-conv",
-      currentPalette: { primary: "#000000" } as any,
+      currentPalette: { primary: "#000000" } as unknown as Palette,
     });
     expect(result.kind).toBe("tweak");
     expect(result.palette?.primary).toBe("#ffffff");

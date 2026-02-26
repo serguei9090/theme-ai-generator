@@ -136,13 +136,16 @@ export const PREDEFINED_MODELS: Record<
   ],
 };
 
-function isValidModelForProvider(model: string, provider: Provider): boolean {
+export function isValidModelForProvider(
+  model: string,
+  provider: Provider,
+): boolean {
   if (provider === "ollama") return true; // Ollama models are user-defined
   const list = PREDEFINED_MODELS[provider as "gemini" | "openai" | "copilot"];
   return list?.some((m) => m.value === model) ?? false;
 }
 
-function parseStorageSettings(raw: string | null) {
+export function parseStorageSettings(raw: string | null) {
   const result = {
     storedProvider: null as Provider | null,
     directorProvider: null as Provider | null,
@@ -194,7 +197,7 @@ function parseStorageSettings(raw: string | null) {
   return result;
 }
 
-async function fetchMcpDefaults() {
+export async function fetchMcpDefaults() {
   let resolvedDefaults = FALLBACK_PROVIDER_DEFAULTS;
   let serverDefaultProvider: Provider = "ollama";
 
@@ -223,7 +226,7 @@ const FORCED_TOOL_LOADING: Record<ForcedTool, string> = {
   tweak_palette: "Tweaking the palette...",
 };
 
-function getLoadingMessage(tool: ForcedTool | null | undefined): string {
+export function getLoadingMessage(tool: ForcedTool | null | undefined): string {
   if (tool) return FORCED_TOOL_LOADING[tool];
   return "The Creative Director is drafting ideas...";
 }

@@ -131,11 +131,12 @@ function Workspace() {
                     key={entry.id}
                     type="button"
                     onClick={() => setActivePreview(entry.id)}
-                    className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                    className={[
+                      "rounded-full border px-4 py-1.5 text-sm transition-colors",
                       active
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-white text-text-secondary hover:text-text"
-                    }`}
+                        : "border-border bg-white text-text-secondary hover:text-text",
+                    ].join(" ")}
                   >
                     {entry.label}
                   </button>

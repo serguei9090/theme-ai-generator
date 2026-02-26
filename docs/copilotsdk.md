@@ -1,4 +1,28 @@
-# GitHub Copilot CLI SDKs
+## Project Integration
+
+Theme AI Generator integrates the GitHub Copilot SDK to power its **Creative Director** persona and provide a high-performance alternative to standard LLM APIs.
+
+### Implementation Locations
+
+- **`packages/core/src/llmService.ts`**: The `callCopilot` function encapsulates the SDK client lifecycle. It handles authentication, session creation, and model execution.
+- **`apps/web/src/lib/assistantOrchestrator.ts`**: Uses the Copilot-backed provider to interpret user intent and perform **Surgical Tweak Resolution** (generating JSON diffs for palette updates).
+- **`apps/web/src/providers/chatContext.tsx`**: Dynamically manages Copilot API keys, allowing users to provide their own or use the token from their NextAuth session (GitHub Login).
+
+### Features Used
+
+1.  **Agentic Context**: We use the SDK to maintain short-term conversation context, allowing the "Director" to understand follow-up requests like "make it darker" or "add more pop to the primary color."
+2.  **Model Discovery**: The application uses `client.listModels()` to dynamically populate the provider settings UI, ensuring users can always select the latest available Copilot models (e.g., GPT-4o, GPT-4o Mini).
+3.  **Flexible Authentication**:
+    *   **CLI Auth**: Developers can use the SDK directly by logging in via `gh auth login`.
+    *   **Token Injection**: In production, tokens are passed via `GITHUB_TOKEN` or extracted from the user's active GitHub session.
+
+### Why Copilot SDK?
+
+By using the Copilot SDK, we benefit from GitHub's production-tested agent runtime. This reduces the complexity of managing complex system prompts and session history manually, allowing the "Director" to stay focused on high-level design reasoning while the SDK handles the underlying LLM orchestration.
+
+---
+
+## GitHub Copilot CLI SDKs
 
 ![GitHub Copilot SDK](./assets/RepoHeader_01.png)
 
