@@ -161,41 +161,50 @@ This project is structured as a monorepo to safely share AI logic while maintain
 
 ---
 
-## 🤖 MCP Server Setup Instructions
+## 🤖 MCP Server Setup & Deployment
 
-You can plug the native MCP server directly into your favorite AI tools.
+The Native MCP server allows you to generate color systems directly inside your AI Assistant (Claude, VS Code, etc.) without needing the web UI.
 
-### Claude Desktop
-Add this to your `claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "theme-ai-generator": {
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"]
-    }
-  }
-}
-```
+### 🏠 Standalone Deployment (MCP Only)
+If you exclusively want to use the MCP features:
+1.  **Clone & Install**: `git clone ... && bun install`
+2.  **Configure**: `cp packages/mcp-server/.env.example packages/mcp-server/.env`
+3.  **Run**: `bun run dev:mcp` (Starts the server on port `41234` by default)
 
-### VS Code (with Antigravity or Roo-Code)
-Add this to your MCP configuration settings in VS Code:
+### 🔌 Integration Examples
+
+Add the following to your application's MCP configuration:
+
+#### Claude Desktop
+File: `%APPDATA%\Claude\claude_desktop_config.json`
 ```json
 {
   "mcpServers": {
     "theme-ai": {
       "command": "bun",
-      "args": ["run", "/absolute/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"]
+      "args": ["run", "C:/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"]
     }
   }
 }
 ```
 
-### GitHub Copilot (if supporting local MCP)
-If your Copilot environment supports direct local MCP processes, configure the command similarly:
-```bash
-bun run /path/to/repo/packages/mcp-server/src/server.ts
+#### VS Code (Roo-Code / Antigravity)
+Add to your custom MCP settings:
+```json
+{
+  "mcpServers": {
+    "theme-ai": {
+      "command": "bun",
+      "args": ["run", "C:/path/to/theme-ai-generator/packages/mcp-server/src/server.ts"],
+      "env": {
+        "GEMINI_API_KEY": "your_key_here",
+        "DEFAULT_PROVIDER": "gemini"
+      }
+    }
+  }
+}
 ```
+*Note: You can pass environment variables directly in the config if you don't want to use a `.env` file.*
 
 ---
 
