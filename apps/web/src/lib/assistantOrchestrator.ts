@@ -175,21 +175,6 @@ async function discoverStylesWithDirector(input: {
   }));
 }
 
-function buildDiscoveryReply(styles: StyleOption[], _prompt: string) {
-  const lines = [
-    "I've got a few great directions we could take this. Here are some options:",
-    "",
-  ];
-  styles.forEach((style, index) => {
-    lines.push(`${index + 1}. **${style.title}** - ${style.rationale}`);
-  });
-  lines.push(
-    "",
-    "Reply with a number (1-3), or just tell me which one sounds best to you.",
-  );
-  return lines.join("\n");
-}
-
 export async function handleAssistantMessage(
   request: AssistantMessageRequest,
 ): Promise<AssistantMessageResponse> {
@@ -272,6 +257,13 @@ export async function handleAssistantMessage(
       history,
     );
 
+    if (process.env.PROVIDER_DEBUG === "true") {
+      console.log(
+        `[DEBUG] Director Provider: ${directorProvider}, Model: ${directorModel}`,
+      );
+      console.log(`[DEBUG] AI Response: ${agentResponse}`);
+    }
+
     const toolCall = extractToolCall(agentResponse);
 
     // If the LLM just wants to talk
@@ -280,6 +272,7 @@ export async function handleAssistantMessage(
         kind: "text",
         reply: agentResponse,
         conversationId,
+        providerUsed: directorProvider,
       };
     }
 
@@ -323,10 +316,11 @@ export async function handleAssistantMessage(
 
       return {
         kind: "palette",
-        reply,
+        reply: reply.trim(),
         conversationId,
         palette: palettes[0],
         palettes: palettes,
+        providerUsed: provider,
       };
     }
 
@@ -344,9 +338,11 @@ export async function handleAssistantMessage(
       state.styles = styles;
       return {
         kind: "discovery",
-        reply: buildDiscoveryReply(styles, message),
+        reply:
+          "I've explored some style directions for you. Which one feels right?",
         conversationId,
-        styles,
+        styles: styles,
+        providerUsed: directorProvider,
       };
     }
 
@@ -377,6 +373,7 @@ export async function handleAssistantMessage(
         reply: "Done! I've tweaked the palette as requested.",
         conversationId,
         palette: tResult.palette,
+        providerUsed: provider,
       };
     }
 

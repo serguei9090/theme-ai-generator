@@ -67,7 +67,7 @@ export const SUPPORTED_PROVIDERS: Provider[] = [
   "copilot",
 ];
 export const DEFAULT_PROVIDER =
-  canonicalizeProvider(process.env.DEFAULT_PROVIDER || "") || "ollama";
+  canonicalizeProvider(process.env.DEFAULT_PROVIDER || "") || "gemini";
 export const DEFAULT_MODELS: Record<Provider, string> = {
   ollama:
     process.env.OLLAMA_DEFAULT_MODEL ||
@@ -81,11 +81,11 @@ export const DEFAULT_MODELS: Record<Provider, string> = {
     process.env.GEMINI_MODEL ||
     process.env.AISTUDIO_DEFAULT_MODEL ||
     (DEFAULT_PROVIDER === "gemini" ? process.env.DEFAULT_MODEL : "") ||
-    "gemini-2.0-flash",
+    "gemini-2.5-flash-lite",
   copilot:
     process.env.COPILOT_MODEL ||
     (DEFAULT_PROVIDER === "copilot" ? process.env.DEFAULT_MODEL : "") ||
-    "gpt-5",
+    "gpt-4o",
 };
 const LEGACY_HEADERS = {
   Deprecation: "true",
@@ -215,6 +215,7 @@ export async function executeGenerate(input: {
   allowFallback?: unknown;
   geminiApiKey?: unknown;
   openaiApiKey?: unknown;
+  copilotApiKey?: unknown;
   history?: unknown;
 }) {
   if (typeof input.mood !== "string" || !input.mood.trim()) {
@@ -235,6 +236,8 @@ export async function executeGenerate(input: {
       typeof input.geminiApiKey === "string" ? input.geminiApiKey : undefined,
     openaiApiKey:
       typeof input.openaiApiKey === "string" ? input.openaiApiKey : undefined,
+    copilotApiKey:
+      typeof input.copilotApiKey === "string" ? input.copilotApiKey : undefined,
     history: Array.isArray(input.history)
       ? (input.history as { role: "user" | "assistant"; text: string }[])
       : undefined,
@@ -258,6 +261,7 @@ export async function executeTweak(input: {
   allowFallback?: unknown;
   geminiApiKey?: unknown;
   openaiApiKey?: unknown;
+  copilotApiKey?: unknown;
   history?: unknown;
 }) {
   const provider = getProvider(input.provider);
@@ -294,6 +298,8 @@ export async function executeTweak(input: {
       typeof input.geminiApiKey === "string" ? input.geminiApiKey : undefined,
     openaiApiKey:
       typeof input.openaiApiKey === "string" ? input.openaiApiKey : undefined,
+    copilotApiKey:
+      typeof input.copilotApiKey === "string" ? input.copilotApiKey : undefined,
     history: Array.isArray(input.history)
       ? (input.history as { role: "user" | "assistant"; text: string }[])
       : undefined,

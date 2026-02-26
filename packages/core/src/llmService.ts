@@ -139,6 +139,74 @@ function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return String(error);
 }
+function getAuthErrorMessage(msg: string, provider: string): string | null {
+  const lowerMsg = msg.toLowerCase();
+  if (
+    lowerMsg.includes("not authenticated") ||
+    lowerMsg.includes("unauthorized") ||
+    lowerMsg.includes("invalid api key") ||
+    lowerMsg.includes("401") ||
+    lowerMsg.includes("auth failed")
+  ) {
+    if (provider === "copilot") {
+      return "Copilot Auth Failed: Your session may have expired or you are not signed in via the 'gh' CLI. Please try running 'gh auth login' or updating your GITHUB_TOKEN.";
+    }
+    return `${provider.toUpperCase()} Auth Failed: Please check your API key and configuration.`;
+  }
+  return null;
+}
+
+function getRateLimitErrorMessage(
+  msg: string,
+  provider: string,
+): string | null {
+  const lowerMsg = msg.toLowerCase();
+  if (
+    msg.includes("429") ||
+    lowerMsg.includes("rate limit") ||
+    lowerMsg.includes("quota exceeded") ||
+    lowerMsg.includes("resource_exhausted")
+  ) {
+    return `${provider.toUpperCase()} Rate Limit reached. Please try again in a minute or switch providers.`;
+  }
+  return null;
+}
+
+function parseGeminiError(msg: string): string | null {
+  try {
+    const jsonMatch = msg.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]);
+    const err = parsed.error;
+    if (err?.status === "RESOURCE_EXHAUSTED" || err?.code === 429) {
+      const retryDelay = err.details?.find(
+        (d: { retryDelay?: string }) => d.retryDelay,
+      )?.retryDelay;
+      return `Gemini Rate Limit reached. ${retryDelay ? `Please retry in ${retryDelay}.` : "Please wait a moment before trying again."}`;
+    }
+    if (err?.message) return `Gemini Error: ${err.message}`;
+  } catch {
+    // Ignore parsing errors
+  }
+  return null;
+}
+
+function handleLLMError(error: unknown, provider: string): string {
+  const msg = getErrorMessage(error);
+
+  const authError = getAuthErrorMessage(msg, provider);
+  if (authError) return authError;
+
+  if (provider === "gemini") {
+    const geminiError = parseGeminiError(msg);
+    if (geminiError) return geminiError;
+  }
+
+  const rateLimitError = getRateLimitErrorMessage(msg, provider);
+  if (rateLimitError) return rateLimitError;
+
+  return `${provider.toUpperCase()} error: ${msg}`;
+}
 
 function normalizeHex(input: unknown): string | null {
   if (typeof input !== "string") return null;
@@ -613,10 +681,9 @@ async function callOpenAI(
     timeout,
   );
 
-  if (!response.ok)
-    throw new Error(
-      `OpenAI error ${response.status}: ${await response.text()}`,
-    );
+  if (!response.ok) {
+    throw new Error(handleLLMError(await response.text(), "openai"));
+  }
   const data: unknown = await response.json();
   const content =
     readPathString(data, ["choices", 0, "message", "content"]) ??
@@ -644,7 +711,7 @@ async function callGemini(
     model ||
     process.env.GEMINI_MODEL ||
     process.env.AISTUDIO_DEFAULT_MODEL ||
-    "gemini-2.0-flash";
+    "gemini-2.5-flash-lite";
   const timeout = Number(process.env.GEMINI_TIMEOUT || "12000");
 
   const ai = new GoogleGenAI({ apiKey });
@@ -672,7 +739,7 @@ async function callGemini(
     }
     return content;
   } catch (error) {
-    throw new Error(`Gemini error: ${getErrorMessage(error)}`);
+    throw new Error(handleLLMError(error, "gemini"));
   } finally {
     clearTimeout(timeoutId);
   }
@@ -684,8 +751,8 @@ async function callCopilot(
   apiKeyOverride?: string,
   systemPrompt?: string,
 ): Promise<string> {
-  const timeout = Number(process.env.COPILOT_TIMEOUT || "20000");
-  const selectedModel = model || process.env.COPILOT_MODEL || "gpt-5";
+  const timeout = Number(process.env.COPILOT_TIMEOUT || "120000");
+  const selectedModel = model || process.env.COPILOT_MODEL || "gpt-4o";
   const githubToken =
     apiKeyOverride ||
     process.env.GITHUB_TOKEN ||
@@ -722,9 +789,48 @@ async function callCopilot(
     if (typeof fallbackContent === "string" && fallbackContent.trim())
       return fallbackContent;
 
-    throw new Error("Copilot SDK returned no assistant content");
+    throw new Error(
+      handleLLMError("Copilot SDK returned no assistant content", "copilot"),
+    );
+  } catch (error) {
+    throw new Error(handleLLMError(error, "copilot"));
   } finally {
     if (session) await session.destroy().catch(() => undefined);
+    await client.stop().catch(() => undefined);
+  }
+}
+
+export async function listCopilotModels(
+  apiKeyOverride?: string,
+): Promise<{ label: string; value: string }[]> {
+  const githubToken =
+    apiKeyOverride ||
+    process.env.GITHUB_TOKEN ||
+    process.env.GH_TOKEN ||
+    undefined;
+
+  // If the token is a placeholder, don't use it
+  const finalToken = githubToken?.includes("your_") ? undefined : githubToken;
+
+  const client = new CopilotClient({
+    autoStart: false,
+    githubToken: finalToken,
+    useLoggedInUser: !finalToken,
+  });
+
+  try {
+    try {
+      await client.start();
+      const models = await client.listModels();
+      // Map SDK ModelInfo to the { label, value } format expected by the frontend
+      return models.map((m: { name?: string; id: string }) => ({
+        label: m.name || m.id,
+        value: m.id,
+      }));
+    } catch (error) {
+      throw new Error(handleLLMError(error, "copilot"));
+    }
+  } finally {
     await client.stop().catch(() => undefined);
   }
 }
@@ -749,6 +855,12 @@ export async function providerPrompt(
       "\n\n---\n\nCurrent request:\n"
     : "";
   const fullPrompt = `${historyText}${prompt}`;
+
+  if (process.env.PROVIDER_DEBUG === "true") {
+    console.log(
+      `[DEBUG] Tool Call -> Provider: ${provider}, Model: ${model || "default"}`,
+    );
+  }
 
   if (provider === "ollama") return callOllama(fullPrompt, model, systemPrompt);
   if (provider === "openai")

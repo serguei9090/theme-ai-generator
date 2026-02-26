@@ -1,5 +1,7 @@
 "use client";
+import { useSession } from "next-auth/react";
 import React from "react";
+import { toast } from "sonner";
 import type {
   AssistantMessageResponse,
   StyleOption,
@@ -23,6 +25,7 @@ type Message = {
   palette?: Palette;
   palettes?: Palette[];
   styles?: StyleOption[];
+  providerUsed?: string;
 };
 
 type SavedSession = {
@@ -99,9 +102,39 @@ const PROVIDERS = new Set<Provider>(["gemini", "ollama", "openai", "copilot"]);
 const FALLBACK_PROVIDER_DEFAULTS: ProviderModelDefaults = {
   ollama: "mistral:latest",
   openai: "gpt-4o-mini",
-  gemini: "gemini-2.0-flash",
-  copilot: "gpt-5",
+  gemini: "gemini-2.5-flash-lite",
+  copilot: "gpt-4o",
 };
+
+export const PREDEFINED_MODELS: Record<
+  Exclude<Provider, "ollama">,
+  { label: string; value: string }[]
+> = {
+  gemini: [
+    { label: "Gemini 2.5 Flash Lite", value: "gemini-2.5-flash-lite" },
+    { label: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
+    { label: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
+    { label: "Gemini 3 Flash", value: "gemini-3-flash" },
+    { label: "Gemini 3 Pro", value: "gemini-3-pro" },
+    { label: "Gemini 2.0 Flash", value: "gemini-2.0-flash" },
+  ],
+  openai: [
+    { label: "GPT-4o", value: "gpt-4o" },
+    { label: "GPT-4o Mini", value: "gpt-4o-mini" },
+    { label: "o1", value: "o1" },
+    { label: "o3-mini", value: "o3-mini" },
+  ],
+  copilot: [
+    { label: "GPT-4o", value: "gpt-4o" },
+    { label: "GPT-4o Mini", value: "gpt-4o-mini" },
+  ],
+};
+
+function isValidModelForProvider(model: string, provider: Provider): boolean {
+  if (provider === "ollama") return true; // Ollama models are user-defined
+  const list = PREDEFINED_MODELS[provider as "gemini" | "openai" | "copilot"];
+  return list?.some((m) => m.value === model) ?? false;
+}
 
 function parseStorageSettings(raw: string | null) {
   const result = {
@@ -181,11 +214,13 @@ async function fetchMcpDefaults() {
 export function ChatProvider({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [provider, setProvider] = React.useState<Provider>("ollama");
-  const [model, setModel] = React.useState("");
+  const [provider, setProvider] = React.useState<Provider>("gemini");
+  const [model, setModel] = React.useState("gemini-2.5-flash-lite");
   const [directorProvider, setDirectorProvider] =
-    React.useState<Provider>("copilot");
-  const [directorModel, setDirectorModel] = React.useState("gpt-5");
+    React.useState<Provider>("gemini");
+  const [directorModel, setDirectorModel] = React.useState(
+    "gemini-2.5-flash-lite",
+  );
   const [geminiApiKey, setGeminiApiKey] = React.useState("");
   const [openaiApiKey, setOpenaiApiKey] = React.useState("");
   const [copilotApiKey, setCopilotApiKey] = React.useState("");
@@ -203,6 +238,31 @@ export function ChatProvider({
   );
   const [pendingStyles, setPendingStyles] = React.useState<StyleOption[]>([]);
   const [themeMode, setThemeMode] = React.useState<"light" | "dark">("light");
+
+  const { data: session } = useSession();
+
+  React.useEffect(() => {
+    // Only auto-sync from session if we don't have a manual key saved in localStorage
+    // This allows manual token overrides to persist across reloads
+    if (session?.accessToken) {
+      try {
+        const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+
+        // If there's no manual key in storage, or if the stored key is the one from the current session, sync it.
+        // This ensures GitHub Login works, but typing a different key persists.
+        if (
+          !parsed?.copilotApiKey ||
+          parsed.copilotApiKey === session.accessToken
+        ) {
+          setCopilotApiKey(session.accessToken);
+        }
+      } catch {
+        // Fallback to sync if storage is corrupted
+        setCopilotApiKey(session.accessToken);
+      }
+    }
+  }, [session]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -231,12 +291,24 @@ export function ChatProvider({
         parsed.storedProvider ||
         serverDefaultProvider ||
         envDefaultProvider ||
-        "ollama";
-      const resolvedModel =
-        parsed.storedModel.trim() ||
-        resolvedDefaults[resolvedProvider] ||
-        (resolvedProvider === envDefaultProvider ? envDefaultModel : "") ||
-        "";
+        "gemini";
+
+      let resolvedModel = parsed.storedModel.trim();
+
+      // Validate the stored model against the provider
+      if (
+        resolvedModel &&
+        !isValidModelForProvider(resolvedModel, resolvedProvider)
+      ) {
+        resolvedModel = ""; // Reset if invalid for this provider
+      }
+
+      if (!resolvedModel) {
+        resolvedModel =
+          resolvedDefaults[resolvedProvider] ||
+          (resolvedProvider === envDefaultProvider ? envDefaultModel : "") ||
+          "";
+      }
 
       setProviderDefaults(resolvedDefaults);
       setProvider(resolvedProvider);
@@ -287,12 +359,14 @@ export function ChatProvider({
               model: model || undefined,
               geminiApiKey: geminiApiKey || undefined,
               openaiApiKey: openaiApiKey || undefined,
+              copilotApiKey: copilotApiKey || undefined,
             },
             director: {
               provider: directorProvider,
               model: directorModel,
               geminiApiKey: geminiApiKey || undefined,
               openaiApiKey: openaiApiKey || undefined,
+              copilotApiKey: copilotApiKey || undefined,
             },
             currentPalette: appliedPalette,
           }),
@@ -325,6 +399,7 @@ export function ChatProvider({
           palette: result.palette,
           palettes: result.palettes,
           styles: result.styles,
+          providerUsed: result.providerUsed,
         });
       } catch (err) {
         const message =
@@ -345,6 +420,7 @@ export function ChatProvider({
       directorModel,
       appliedPalette,
       pushAssistantMessage,
+      copilotApiKey,
     ],
   );
 
@@ -400,6 +476,7 @@ export function ChatProvider({
           explain: result.explain,
           palette: result.palette,
           palettes: result.palettes,
+          providerUsed: result.providerUsed,
         });
       } catch (err) {
         const message =
@@ -439,6 +516,7 @@ export function ChatProvider({
           model: model || undefined,
           geminiApiKey: geminiApiKey || undefined,
           openaiApiKey: openaiApiKey || undefined,
+          copilotApiKey: copilotApiKey || undefined,
         });
         setAppliedPalette(result.palette);
         pushAssistantMessage({
@@ -460,6 +538,7 @@ export function ChatProvider({
       model,
       geminiApiKey,
       openaiApiKey,
+      copilotApiKey,
       pushAssistantMessage,
     ],
   );
@@ -479,6 +558,7 @@ export function ChatProvider({
           model: model || undefined,
           geminiApiKey: geminiApiKey || undefined,
           openaiApiKey: openaiApiKey || undefined,
+          copilotApiKey: copilotApiKey || undefined,
         });
 
         const nextPalette: Palette = {
@@ -508,6 +588,7 @@ export function ChatProvider({
       model,
       geminiApiKey,
       openaiApiKey,
+      copilotApiKey,
       pushAssistantMessage,
     ],
   );
@@ -567,24 +648,23 @@ export function ChatProvider({
 
     try {
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(payload));
-      pushAssistantMessage({ text: "Session saved to browser storage." });
+      toast.success("Session Saved", {
+        description: "Current theme and settings backed up to browser storage.",
+      });
     } catch {
-      pushAssistantMessage({ text: "Unable to save session." });
+      toast.error("Save Failed", {
+        description: "Unable to persist session to browser storage.",
+      });
     }
-  }, [
-    provider,
-    model,
-    messages,
-    appliedPalette,
-    lastPrompt,
-    pushAssistantMessage,
-  ]);
+  }, [provider, model, messages, appliedPalette, lastPrompt]);
 
   const restoreSession = React.useCallback(() => {
     try {
       const raw = localStorage.getItem(SESSION_STORAGE_KEY);
       if (!raw) {
-        pushAssistantMessage({ text: "No saved session found." });
+        toast.error("No Session Found", {
+          description: "No previously saved state exists.",
+        });
         return;
       }
       const payload = JSON.parse(raw) as SavedSession;
@@ -595,13 +675,15 @@ export function ChatProvider({
       if (Array.isArray(payload.messages)) setMessages(payload.messages);
       if (typeof payload.lastPrompt === "string")
         setLastPrompt(payload.lastPrompt);
-      pushAssistantMessage({
-        text: `Restored saved session from ${payload.savedAt || "unknown time"}.`,
+      toast.success("Session Restored", {
+        description: `Back from ${payload.savedAt ? new Date(payload.savedAt).toLocaleString() : "unknown time"}.`,
       });
     } catch {
-      pushAssistantMessage({ text: "Unable to restore saved session." });
+      toast.error("Restore Failed", {
+        description: "The saved session data is corrupted.",
+      });
     }
-  }, [pushAssistantMessage]);
+  }, []);
 
   const contextValue = React.useMemo(
     () => ({

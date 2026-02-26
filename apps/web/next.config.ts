@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ["@theme-ai/core"],
+  serverExternalPackages: ["@github/copilot-sdk"],
 };
 
 export default nextConfig;

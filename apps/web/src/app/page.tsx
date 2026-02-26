@@ -8,7 +8,7 @@ import DesktopAppMockup from "../components/templates/DesktopAppMockup";
 import MobileAppMockup from "../components/templates/MobileAppMockup";
 import WebAppMockup from "../components/templates/WebAppMockup";
 import WebsiteMockup from "../components/templates/WebsiteMockup";
-import { ChatProvider, useChat } from "../providers/chatContext";
+import { useChat } from "../providers/chatContext";
 import ThemeProvider from "../providers/ThemeProvider";
 
 type PreviewKind = "website" | "webapp" | "desktop" | "mobile";
@@ -235,9 +235,5 @@ function Workspace() {
 }
 
 export default function Home() {
-  return (
-    <ChatProvider>
-      <Workspace />
-    </ChatProvider>
-  );
+  return <Workspace />;
 }

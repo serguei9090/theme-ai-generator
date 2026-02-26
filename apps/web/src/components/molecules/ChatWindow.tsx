@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUp } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { StyleOption } from "../../lib/assistantTypes";
 import type { Palette } from "../../lib/mcpClient";
 import { useChat } from "../../providers/chatContext";
@@ -145,6 +145,15 @@ export default function ChatWindow() {
                 <p className="mt-2 text-xs text-text-secondary">{m.explain}</p>
               )}
 
+              {m.providerUsed && (
+                <div className="mt-3 flex items-center gap-1.5 opacity-50">
+                  <span className="h-1 w-1 rounded-full bg-text-tertiary" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-text-tertiary">
+                    {m.providerUsed}
+                  </span>
+                </div>
+              )}
+
               {/* Multiple Palettes Support */}
               {m.palettes && m.palettes.length > 0 ? (
                 <div className="mt-1 space-y-3">
@@ -217,10 +226,10 @@ export default function ChatWindow() {
             onClick={handleSend}
             variant="default"
             size="sm"
-            className="absolute right-2 bottom-2 h-8 w-8 rounded-md transition-all shadow-sm"
+            className="absolute right-2 bottom-2 h-8 w-8 rounded-full transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-30"
             disabled={loading || !chatInput.trim()}
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
