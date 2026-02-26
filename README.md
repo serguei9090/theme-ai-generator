@@ -35,7 +35,7 @@ For quick testing or to containerize the application, you can use Docker or our 
 #### Option A: Quick Local Start (One-Liner)
 If you have `bun` and `ollama` (running) installed, run this to start the app in one command:
 ```bash
-bun install && cp .env.example.mini .env && bun run dev:web
+bun install && cp .env.example.mini .env && cp .env apps/web/.env.local && bun run dev:web
 ```
 
 #### Option B: Docker Testing
@@ -54,12 +54,17 @@ To test the project in a clean environment using Docker:
 
 ## Quick Setup Summary
 
-The repository is built as a **Monorepo** with two completely independent entry points. You can run either the web app or the native MCP Server, or both depending on your needs.
+The repository is built as a **Monorepo**. Environment variables are managed at the root and shared with the web application.
 
 #### 1. Common Setup
 ```bash
 bun install
-cp packages/mcp-server/.env.example .env
+
+# Initialize environment from template
+cp .env.example .env
+
+# Sync to web app (Required for Next.js/Node.js)
+cp .env apps/web/.env.local
 ```
 
 #### 2. Run the Web App (Full UI)
@@ -242,10 +247,10 @@ Run these from the root of the monorepo:
 ---
 
 ## 🧪 Testing Requirements
-To ensure full connectivity and provider reliability, please verify the following API connections:
-- [ ] **AI Studio (Gemini)**: Verify `GEMINI_API_KEY` is active and responding.
-- [ ] **OpenAI**: Verify `OPENAI_API_KEY` has active credits.
-- [ ] **Copilot**: Ensure the `@github/copilot-sdk` is authenticated via your GitHub session.
+To ensure full connectivity and provider reliability, the following API connections have been verified:
+- [x] **AI Studio (Gemini)**: Active and responding via official SDK.
+- [ ] **OpenAI**: **NOT TESTED** (Requires active credits).
+- [x] **Copilot**: Authenticated and functioning as the primary Creative Director.
 
 *Note: The built-in error handler will notify you specifically if a rate limit (429) is hit, allowing you to confirm connection even if your quota is exhausted.*
 
@@ -261,7 +266,7 @@ To ensure full connectivity and provider reliability, please verify the followin
 
 ## Security Checklist (Submission)
 
-- [ ] No hardcoded API keys in repository
-- [ ] `.env` files are excluded from git
-- [ ] Demo assets contain no sensitive/customer data
-- [ ] CORS restricted to explicit origins in production
+- [x] No hardcoded API keys in repository
+- [x] `.env` files are excluded from git
+- [x] Demo assets contain no sensitive/customer data
+- [x] CORS restricted to explicit origins in production
