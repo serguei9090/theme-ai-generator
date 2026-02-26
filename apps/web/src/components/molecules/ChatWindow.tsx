@@ -1,27 +1,40 @@
 "use client";
+import { ArrowUp } from "lucide-react";
 import type { StyleOption } from "../../lib/assistantTypes";
 import type { Palette } from "../../lib/mcpClient";
 import { useChat } from "../../providers/chatContext";
 import { Button } from "../atoms/button";
-import { Input } from "../atoms/input";
+import { Textarea } from "../atoms/Textarea";
 
 const PALETTE_KEYS: Array<keyof Palette> = [
-  "primary",
-  "secondary",
-  "accent",
   "background",
+  "surface",
+  "surfaceSecondary",
+  "border",
+  "primary",
+  "onPrimary",
+  "primaryContainer",
+  "primaryHover",
+  "accent",
+  "onAccent",
+  "accentHover",
   "text",
+  "textMedium",
+  "textLow",
+  "success",
+  "warning",
+  "error",
 ];
 
 function StyleCard({
   style,
   onSelect,
   disabled,
-}: {
+}: Readonly<{
   style: StyleOption;
   onSelect: (id: string) => void;
   disabled: boolean;
-}) {
+}>) {
   return (
     <button
       type="button"
@@ -42,6 +55,42 @@ function StyleCard({
         {style.rationale}
       </p>
     </button>
+  );
+}
+
+function PalettePreview({
+  palette,
+  onApply,
+  messageId,
+}: Readonly<{
+  palette: Palette;
+  onApply: (p: Palette) => void;
+  messageId: string;
+}>) {
+  return (
+    <div className="mt-3 space-y-2 rounded-md border border-border/50 bg-white/50 p-2 shadow-sm">
+      <div className="grid grid-cols-5 gap-1">
+        {PALETTE_KEYS.map((key) => (
+          <div key={`${messageId}-${key}`} className="space-y-1">
+            <div
+              className="h-6 rounded border border-border"
+              style={{ background: palette[key] }}
+            />
+            <p className="text-[10px] leading-none text-center">
+              {key.slice(0, 1).toUpperCase()}
+            </p>
+          </div>
+        ))}
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-full h-8 text-xs"
+        onClick={() => onApply(palette)}
+      >
+        Apply Palette
+      </Button>
+    </div>
   );
 }
 
@@ -85,36 +134,44 @@ export default function ChatWindow() {
             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-sm rounded-lg px-4 py-2.5 ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-surface text-text border border-border"}`}
+              className={`max-w-sm rounded-lg px-4 py-2.5 ${
+                m.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface text-text border border-border"
+              }`}
             >
               <p className="whitespace-pre-wrap text-sm">{m.text}</p>
               {m.explain && (
                 <p className="mt-2 text-xs text-text-secondary">{m.explain}</p>
               )}
-              {m.palette && (
-                <div className="mt-3 space-y-2">
-                  <div className="grid grid-cols-5 gap-1">
-                    {PALETTE_KEYS.map((key) => (
-                      <div key={`${m.id}-${key}`} className="space-y-1">
-                        <div
-                          className="h-6 rounded border border-border"
-                          style={{ background: m.palette?.[key] }}
-                        />
-                        <p className="text-[10px] leading-none text-center">
-                          {key.slice(0, 1).toUpperCase()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => applyPalette(m.palette as Palette)}
-                  >
-                    Apply Palette
-                  </Button>
+
+              {/* Multiple Palettes Support */}
+              {m.palettes && m.palettes.length > 0 ? (
+                <div className="mt-1 space-y-3">
+                  {m.palettes.map((p, idx) => (
+                    <div key={`${m.id}-p-${idx + 1}`}>
+                      <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+                        Option {idx + 1}
+                      </p>
+                      <PalettePreview
+                        palette={p}
+                        onApply={applyPalette}
+                        messageId={`${m.id}-${idx}`}
+                      />
+                    </div>
+                  ))}
                 </div>
+              ) : (
+                /* Single Palette Fallback */
+                m.palette && (
+                  <PalettePreview
+                    palette={m.palette}
+                    onApply={applyPalette}
+                    messageId={m.id}
+                  />
+                )
               )}
+
               {m.styles && m.styles.length > 0 && (
                 <ul className="mt-3 space-y-2" aria-label="Style options">
                   {m.styles.map((style) => (
@@ -142,25 +199,28 @@ export default function ChatWindow() {
       </div>
 
       <div className="border-t border-border bg-white p-4">
-        <div className="flex gap-2">
-          <Input
+        <div className="relative group">
+          <Textarea
             value={chatInput}
-            onChange={(e) => setChatInput((e.target as HTMLInputElement).value)}
+            onChange={(e) => setChatInput(e.target.value)}
             placeholder="Ask for a palette, or say hi to start..."
+            className="flex-1 pr-12 min-h-[44px]"
             disabled={loading}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
-                handleSend();
                 e.preventDefault();
+                handleSend();
               }
             }}
           />
           <Button
             onClick={handleSend}
+            variant="default"
             size="sm"
+            className="absolute right-2 bottom-2 h-8 w-8 rounded-md transition-all shadow-sm"
             disabled={loading || !chatInput.trim()}
           >
-            Send
+            <ArrowUp className="h-4 w-4" />
           </Button>
         </div>
       </div>

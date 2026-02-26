@@ -60,6 +60,24 @@ Use the template below to paste your real Copilot prompts and outputs before sub
 | LLM Integration | `Replace aistudio direct fetch with official @google/genai SDK` | Improved reliability and token handling |
 | Orchestration | `Implement dual-brain workflow with Copilot SDK as creative director` | High-quality reasoning vs precise tool execution |
 
+### 🧠 Copilot SDK Integration
+We have deeply integrated the **GitHub Copilot SDK** as the primary "Creative Director" of the system.
+- **Intent Discovery**: Before generating colors, the system uses the Copilot SDK to reason about the user's project and propose three distinct stylistic directions.
+- **Agentic Orchestration**: The SDK manages the high-level conversation state, while the low-level palette math is delegated to specialized MCP tools.
+- **Seamless Fallback**: If the SDK is unavailable, the system transparently falls back to local Ollama or raw Gemini/OpenAI providers.
+
+### 🔄 Multi-Step Reasoning & Self-Correction
+The system doesn't just pass text to an LLM; it implements a robust reasoning loop to ensure technical quality and accessibility.
+
+#### Example: The Accessibility Correction Loop
+1.  **Creative Intent**: User asks for a "light neon palette."
+2.  **LLM Generation**: The model proposes a bright yellow background with white text (low contrast).
+3.  **Validation Step**: The `enforcePaletteAccessibility` logic calculates the contrast ratio between `text` and `background`.
+4.  **Loop/Correction**: If the ratio is below 4.5:1 (WCAG AA), the system automatically triggers a correction, selecting the most readable text color (dark navy or white) to preserve the aesthetic while ensuring usability.
+5.  **Evidence**: The user receives a notification: *"Applied readability adjustment for text contrast."*
+
+This allows the "Creative Director" (Copilot) to focus on the mood, while the "Technical Engine" (MCP) ensures the design is actually functional.
+
 ### Technical Highlights
 - Multi-provider LLM routing with deterministic fallback in [`llmService.ts`](./apps/web/src/lib/mcp-server/llmService.ts)
 - Official **Gemini SDK** integration for high-performance generation
@@ -193,6 +211,16 @@ Run these from the root of the monorepo:
 - **Typecheck everything**: `bun run typecheck`
 - **Typecheck web specifically**: `bun run typecheck:web`
 - **Lint**: `bun run lint`
+
+---
+
+## 🧪 Testing Requirements
+To ensure full connectivity and provider reliability, please verify the following API connections:
+- [ ] **AI Studio (Gemini)**: Verify `GEMINI_API_KEY` is active and responding.
+- [ ] **OpenAI**: Verify `OPENAI_API_KEY` has active credits.
+- [ ] **Copilot**: Ensure the `@github/copilot-sdk` is authenticated via your GitHub session.
+
+*Note: The built-in error handler will notify you specifically if a rate limit (429) is hit, allowing you to confirm connection even if your quota is exhausted.*
 
 ---
 

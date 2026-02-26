@@ -1,9 +1,21 @@
 export type Palette = {
-  primary: string;
-  secondary: string;
-  accent: string;
   background: string;
+  surface: string;
+  surfaceSecondary: string;
+  border: string;
+  primary: string;
+  onPrimary: string;
+  primaryContainer: string;
+  primaryHover: string;
+  accent: string;
+  onAccent: string;
+  accentHover: string;
   text: string;
+  textMedium: string;
+  textLow: string;
+  success: string;
+  warning: string;
+  error: string;
 };
 
 export type Provider = "gemini" | "ollama" | "openai" | "copilot";
@@ -33,6 +45,7 @@ export type GenerateRequest = {
   allowFallback?: boolean;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
 };
 
 export type TweakRequest = {
@@ -46,6 +59,7 @@ export type TweakRequest = {
   allowFallback?: boolean;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
 };
 
 export function normalizeProvider(
@@ -129,6 +143,7 @@ export async function generateThemePalette(
     allowFallback: request.allowFallback ?? true,
     geminiApiKey: request.geminiApiKey,
     openaiApiKey: request.openaiApiKey,
+    copilotApiKey: request.copilotApiKey,
   });
 }
 
@@ -147,6 +162,7 @@ export async function tweakThemePalette(
     allowFallback: request.allowFallback ?? true,
     geminiApiKey: request.geminiApiKey,
     openaiApiKey: request.openaiApiKey,
+    copilotApiKey: request.copilotApiKey,
   });
 }
 

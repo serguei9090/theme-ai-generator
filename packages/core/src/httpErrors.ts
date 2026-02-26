@@ -6,6 +6,7 @@ export type ErrorCode =
   | "CORS_FORBIDDEN"
   | "UPSTREAM_FAILURE"
   | "UPSTREAM_TIMEOUT"
+  | "RATE_LIMIT_EXCEEDED"
   | "SERVICE_MISCONFIGURED"
   | "INTERNAL_ERROR";
 
@@ -59,6 +60,19 @@ export function toHttpError(error: unknown): HttpError {
 
   if (hasPattern(message, /(timed out|timeout|abort|aborted)/)) {
     return new HttpError(504, message, "UPSTREAM_TIMEOUT");
+  }
+
+  if (
+    hasPattern(
+      message,
+      /(rate limit|too many requests|429|exhausted|quota exceeded)/,
+    )
+  ) {
+    return new HttpError(
+      429,
+      "AI model rate limit reached. Please wait or check your API quota.",
+      "RATE_LIMIT_EXCEEDED",
+    );
   }
 
   if (

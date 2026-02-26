@@ -1,9 +1,16 @@
+"use client";
+
 import { Avatar, AvatarFallback } from "../atoms/avatar";
 import { Badge } from "../atoms/badge";
 import { Button } from "../atoms/button";
 import { Card, CardContent } from "../atoms/card";
 import { Progress } from "../atoms/progress";
-import { MockSectionTitle, PhoneFrame, type ScreenPattern } from "./_shared";
+import {
+  ColorPill,
+  PhoneFrame,
+  PulseIndicator,
+  type ScreenPattern,
+} from "./_shared";
 
 const SCREEN_PATTERNS: ScreenPattern[] = [
   {
@@ -13,21 +20,21 @@ const SCREEN_PATTERNS: ScreenPattern[] = [
     cta: "View Portfolio",
   },
   {
-    id: "commerce",
-    title: "Commerce Catalog",
-    subtitle: "Product cards with quick purchase actions",
-    cta: "Checkout",
+    id: "styleguide",
+    title: "Project Tokens",
+    subtitle: "Verified architectural palette",
+    cta: "Export Theme",
   },
   {
-    id: "social",
-    title: "Social Feed",
-    subtitle: "Posts, reactions, and community updates",
-    cta: "Create Post",
+    id: "home",
+    title: "Engagement Overview",
+    subtitle: "Real-time user feedback",
+    cta: "See Details",
   },
   {
     id: "wallet",
     title: "Wallet & Support",
-    subtitle: "Balance, transactions, and help entry points",
+    subtitle: "Balance and transactions",
     cta: "Open Support",
   },
 ];
@@ -36,193 +43,145 @@ const TIMES = ["9:41", "10:30", "11:18", "12:02"];
 
 export default function MobileAppMockup() {
   return (
-    <div className="w-full rounded-xl border border-border bg-background p-4 text-text">
-      <MockSectionTitle
-        eyebrow="Mobile Pattern Gallery"
-        title="Four enterprise-ready mobile directions"
-        description="Each screen tests palette behavior across cards, badges, CTA buttons, and metadata blocks."
-        trailing={<Badge variant="outline">4 screens</Badge>}
-      />
-
+    <div className="w-full rounded-xl border border-[var(--sys-border)] bg-[var(--sys-elevation-bg)] p-4 text-[var(--sys-text)]">
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <PhoneFrame statusTime={TIMES[0]} label="Profile">
-          <Card className="border-0 bg-primary text-primary-foreground">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback>MH</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-xs font-semibold">Marry Hart</p>
-                    <p className="text-[10px] text-primary-foreground/80">
-                      Design Lead
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-primary-foreground"
-                >
-                  Pro
-                </Badge>
-              </div>
-              <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[10px]">
-                <div>
-                  <p className="text-sm font-semibold">648</p>
-                  <p>Following</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">8</p>
-                  <p>Buckets</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">1052</p>
-                  <p>Followers</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <div className="mt-2 flex flex-wrap gap-1">
-            <Badge variant="secondary">Principle</Badge>
-            <Badge variant="accent">Interface</Badge>
-            <Badge>Web App</Badge>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <div className="h-14 rounded-md bg-secondary/30" />
-            <div className="h-14 rounded-md bg-accent/25" />
-            <div className="h-14 rounded-md bg-primary/20" />
-            <div className="h-14 rounded-md bg-secondary/20" />
-          </div>
-          <Button size="sm" className="mt-2 w-full">
-            {SCREEN_PATTERNS[0].cta}
-          </Button>
-        </PhoneFrame>
-
-        <PhoneFrame statusTime={TIMES[1]} label="Shop">
-          <Card className="border-0 bg-primary text-primary-foreground">
-            <CardContent className="p-3">
-              <p className="text-xs font-semibold">
-                {SCREEN_PATTERNS[1].title}
-              </p>
-              <p className="text-[10px] text-primary-foreground/80">
-                {SCREEN_PATTERNS[1].subtitle}
-              </p>
-              <div className="mt-2 rounded-md bg-white/15 px-2 py-1 text-[10px]">
-                Search products...
-              </div>
-            </CardContent>
-          </Card>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {[
-              ["Classic Tee", "$68"],
-              ["Summer Shirt", "$77"],
-            ].map(([name, price]) => (
-              <Card key={name} className="bg-white">
-                <CardContent className="p-2">
-                  <div className="h-8 rounded bg-secondary/30" />
-                  <p className="mt-1 text-[10px]">{name}</p>
-                  <div className="mt-1 flex items-center justify-between">
-                    <p className="text-[11px] font-semibold">{price}</p>
-                    <Button size="sm" className="h-6 px-2 text-[10px]">
-                      Add
-                    </Button>
+        {SCREEN_PATTERNS.map((screen, idx) => (
+          <PhoneFrame
+            key={screen.id}
+            statusTime={TIMES[idx]}
+            label={screen.id.charAt(0).toUpperCase() + screen.id.slice(1)}
+          >
+            <div className="space-y-3">
+              <Card className="border-0 bg-[var(--sys-primary)] text-[var(--sys-on-primary)] shadow-sm transition-transform active:scale-[0.98]">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-7 w-7">
+                        <AvatarFallback className="bg-[var(--sys-on-primary)]/10 text-[var(--sys-on-primary)] border border-[var(--sys-on-primary)]/20 shadow-inner">
+                          {screen.id === "profile" ? "MH" : "AI"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-xs font-bold leading-none">
+                          {screen.title}
+                        </p>
+                        <p className="mt-1 text-[9px] text-[var(--sys-on-primary)] opacity-80 leading-tight">
+                          {screen.subtitle}
+                        </p>
+                      </div>
+                    </div>
+                    {screen.id === "styleguide" && (
+                      <PulseIndicator
+                        tone="primary"
+                        className="bg-[var(--sys-on-primary)]/20 p-1 rounded-full"
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-          <Button size="sm" variant="outline" className="mt-2 w-full">
-            {SCREEN_PATTERNS[1].cta}
-          </Button>
-        </PhoneFrame>
 
-        <PhoneFrame statusTime={TIMES[2]} label="Social">
-          <Card className="border-0 bg-primary text-primary-foreground">
-            <CardContent className="p-3">
-              <p className="text-xs font-semibold">
-                {SCREEN_PATTERNS[2].title}
-              </p>
-              <p className="text-[10px] text-primary-foreground/80">
-                {SCREEN_PATTERNS[2].subtitle}
-              </p>
-            </CardContent>
-          </Card>
-          <div className="mt-2 flex gap-1">
-            {["NA", "KM", "LA", "AT"].map((name) => (
-              <Avatar key={name} className="h-6 w-6">
-                <AvatarFallback>{name}</AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          <Card className="mt-2 bg-white">
-            <CardContent className="p-2">
-              <p className="text-[10px] text-text-secondary">
-                Design Ops Update
-              </p>
-              <p className="mt-1 text-[11px]">
-                Launch day notes and palette refinements for version 2.1.
-              </p>
-              <div className="mt-2 h-9 rounded bg-accent/20" />
-              <div className="mt-2 flex items-center justify-between text-[10px] text-text-secondary">
-                <span>24 likes</span>
-                <span>8 comments</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Button size="sm" className="mt-2 w-full">
-            {SCREEN_PATTERNS[2].cta}
-          </Button>
-        </PhoneFrame>
-
-        <PhoneFrame statusTime={TIMES[3]} label="Wallet">
-          <Card className="border-0 bg-primary text-primary-foreground">
-            <CardContent className="p-3">
-              <p className="text-[10px]">Current Balance</p>
-              <p className="mt-1 text-sm font-semibold">$18,320.25</p>
-              <div className="mt-2 flex gap-1">
-                <Badge
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-primary-foreground"
-                >
-                  Send
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-primary-foreground"
-                >
-                  Request
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-primary-foreground"
-                >
-                  Top up
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-          <div className="mt-2 space-y-1">
-            {[
-              ["Subscription", "-$18.00", 20],
-              ["Transport", "-$12.40", 38],
-              ["Salary", "+$2,450.00", 82],
-            ].map(([label, amount, progress]) => (
-              <Card key={label} className="bg-white">
-                <CardContent className="space-y-1 p-2">
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span>{label}</span>
-                    <span className="font-medium">{amount}</span>
+              {screen.id === "styleguide" && (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <ColorPill
+                    label="Primary"
+                    colorVar="--sys-primary"
+                    onColorVar="--sys-on-primary"
+                  />
+                  <ColorPill
+                    label="Accent"
+                    colorVar="--sys-accent"
+                    onColorVar="--sys-on-accent"
+                  />
+                  <ColorPill
+                    label="Success"
+                    colorVar="--sys-success"
+                    onColorVar="--sys-on-success"
+                  />
+                  <ColorPill
+                    label="Error"
+                    colorVar="--sys-error"
+                    onColorVar="--text-white"
+                  />
+                  <div className="col-span-2 mt-1 rounded-lg bg-[var(--sys-primary-container)]/10 p-2 text-[9px] text-[var(--sys-primary)] flex items-center gap-2 border border-[var(--sys-primary)]/20">
+                    <div className="h-1 w-1 rounded-full bg-current animate-pulse" />
+                    <span>Dynamic AA/AAA Contrast Pass</span>
                   </div>
-                  <Progress value={Number(progress)} />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <Button size="sm" variant="outline" className="mt-2 w-full">
-            {SCREEN_PATTERNS[3].cta}
-          </Button>
-        </PhoneFrame>
+                </div>
+              )}
+
+              {screen.id === "home" && (
+                <Card className="border-[var(--sys-border)] bg-[var(--sys-elevation-card)] transition-all active:scale-[0.98] hover:border-[var(--sys-primary)]/40">
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold">
+                        Trend Analysis
+                      </span>
+                      <Badge variant="success" className="h-4 px-1 text-[8px]">
+                        +12%
+                      </Badge>
+                    </div>
+                    <div className="flex h-10 items-end justify-between gap-1 overflow-hidden rounded bg-[var(--sys-primary-container)]/10 p-1">
+                      {[40, 60, 45, 80, 55, 95].map((h, i) => (
+                        <div
+                          key={`trend-bar-${i}-${h}`}
+                          className="w-full rounded-t-sm bg-[var(--sys-primary)]/40 transition-all hover:bg-[var(--sys-primary)]"
+                          style={{ height: `${h}%` }}
+                        >
+                          {i === 5 && (
+                            <div className="h-1 w-full bg-[var(--sys-primary)] animate-pulse" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {screen.id === "profile" && (
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {SCREEN_PATTERNS.map((p) => (
+                    <div
+                      key={`${p.id}-mini`}
+                      className="space-y-1 group relative aspect-square overflow-hidden rounded-lg border border-[var(--sys-border)] bg-[var(--sys-elevation-sidebar)] transition-all active:scale-95"
+                    >
+                      <div
+                        className={`absolute inset-0 opacity-20 transition-opacity group-hover:opacity-40 bg-[var(--sys-primary)]`}
+                      />
+                      <div className="absolute bottom-1 right-1 h-2 w-2 rounded-full border border-white bg-green-500 shadow-sm" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {screen.id === "wallet" && (
+                <div className="space-y-1.5 mt-1">
+                  {[
+                    { label: "Design Tools", val: "$49.00", p: 70 },
+                    { label: "API Usage", val: "$12.20", p: 35 },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-lg border border-[var(--sys-border)] bg-[var(--sys-elevation-card)] p-2"
+                    >
+                      <div className="flex justify-between text-[9px] mb-1">
+                        <span>{item.label}</span>
+                        <span className="font-bold">{item.val}</span>
+                      </div>
+                      <Progress value={item.p} className="h-1" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Button
+                size="sm"
+                className="w-full h-8 text-xs transition-transform active:scale-95 shadow-sm mt-auto"
+              >
+                {screen.cta}
+              </Button>
+            </div>
+          </PhoneFrame>
+        ))}
       </div>
     </div>
   );

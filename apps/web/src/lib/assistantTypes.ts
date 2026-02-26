@@ -17,12 +17,14 @@ export type AssistantMessageRequest = {
     model?: string;
     geminiApiKey?: string;
     openaiApiKey?: string;
+    copilotApiKey?: string;
   };
   director?: {
     provider?: Provider;
     model?: string;
     geminiApiKey?: string;
     openaiApiKey?: string;
+    copilotApiKey?: string;
   };
   currentPalette?: Palette;
 };
@@ -33,6 +35,7 @@ export type AssistantMessageResponse = {
   conversationId?: string;
   styles?: StyleOption[];
   palette?: Palette;
+  palettes?: Palette[];
   explain?: string;
   providerUsed?: string;
   fallbackUsed?: boolean;

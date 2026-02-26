@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import type { Palette } from "../lib/mcpClient";
 
 type Props = {
@@ -16,7 +16,7 @@ function parseHex(hex: string) {
   };
 }
 
-function hexToRgba(hex: string, alpha: number) {
+function _hexToRgba(hex: string, alpha: number) {
   const parsed = parseHex(hex);
   if (!parsed) return `rgba(36, 41, 47, ${alpha})`;
   return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${alpha})`;
@@ -72,43 +72,123 @@ function mixHex(base: string, tint: string, amount: number) {
   )}`;
 }
 
+import { useChat } from "./chatContext";
+
 export function ThemeProvider({ children, palette }: Props) {
-  React.useEffect(() => {
-    if (!palette) return;
-    const root = document.documentElement;
-    const onPrimary = chooseForeground(palette.primary, palette.text);
-    const onSecondary = chooseForeground(palette.secondary, palette.text);
-    const onAccent = chooseForeground(palette.accent, palette.text);
-    const surface = mixHex(palette.background, palette.text, 0.04);
-    const border = hexToRgba(palette.text, 0.18);
+  const { themeMode } = useChat();
+  if (!palette) return <>{children}</>;
 
-    root.style.setProperty("--color-primary", palette.primary);
-    root.style.setProperty("--color-secondary", palette.secondary);
-    root.style.setProperty("--color-accent", palette.accent);
-    root.style.setProperty("--color-background", palette.background);
-    root.style.setProperty("--color-text", palette.text);
-    root.style.setProperty("--primary", palette.primary);
-    root.style.setProperty("--secondary", palette.secondary);
-    root.style.setProperty("--accent", palette.accent);
-    root.style.setProperty("--background", palette.background);
-    root.style.setProperty("--foreground", palette.text);
-    root.style.setProperty("--surface", surface);
-    root.style.setProperty("--text", palette.text);
-    root.style.setProperty("--primary-foreground", onPrimary);
-    root.style.setProperty("--secondary-foreground", onSecondary);
-    root.style.setProperty("--accent-foreground", onAccent);
-    root.style.setProperty("--muted", surface);
-    root.style.setProperty("--card", palette.background);
-    root.style.setProperty("--card-foreground", palette.text);
-    root.style.setProperty("--popover", palette.background);
-    root.style.setProperty("--popover-foreground", palette.text);
-    root.style.setProperty("--border", border);
-    root.style.setProperty("--input", border);
-    root.style.setProperty("--text-secondary", hexToRgba(palette.text, 0.72));
-    root.style.setProperty("--text-tertiary", hexToRgba(palette.text, 0.56));
-  }, [palette]);
+  const isDark = themeMode === "dark";
+  const bgIsLight = luminance(palette.background) > 0.5;
 
-  return <>{children}</>;
+  // We only "flip" if the user-selected mode doesn't match the colors they generated.
+  // If they generated a light theme but clicked "Dark", we swap high-level neutrals.
+  const needsInversion = (isDark && bgIsLight) || (!isDark && !bgIsLight);
+
+  // Derived Neutral Ramp
+  const effectiveBg = needsInversion ? palette.text : palette.background;
+  const effectiveText = needsInversion ? palette.background : palette.text;
+  const effectiveSurface = needsInversion
+    ? mixHex(effectiveBg, effectiveText, 0.05)
+    : palette.surface;
+  const effectiveSurfaceSecondary = needsInversion
+    ? mixHex(effectiveBg, effectiveText, 0.1)
+    : palette.surfaceSecondary;
+  const effectiveBorder = needsInversion
+    ? mixHex(effectiveBg, effectiveText, 0.15)
+    : palette.border;
+
+  // Contrast-aware Foreground Selection
+  const onPrimary = chooseForeground(palette.primary, palette.onPrimary);
+  const onAccent = chooseForeground(palette.accent, palette.onAccent);
+  const onPrimaryContainer = chooseForeground(
+    palette.primaryContainer,
+    palette.onPrimary,
+  );
+  const onSuccess = chooseForeground(palette.success, "#ffffff");
+  const onWarning = chooseForeground(palette.warning, palette.text);
+  const onError = chooseForeground(palette.error, "#ffffff");
+
+  const style = {
+    // 60-30-10 System Tokens
+    "--sys-background": effectiveBg,
+    "--sys-surface": effectiveSurface,
+    "--sys-surface-secondary": effectiveSurfaceSecondary,
+    "--sys-border": effectiveBorder,
+
+    "--sys-primary": palette.primary,
+    "--sys-on-primary": onPrimary,
+    "--sys-primary-container": palette.primaryContainer,
+    "--sys-on-primary-container": onPrimaryContainer,
+    "--sys-primary-hover": palette.primaryHover,
+
+    "--sys-accent": palette.accent,
+    "--sys-on-accent": onAccent,
+    "--sys-accent-hover": palette.accentHover,
+
+    "--sys-success": palette.success,
+    "--sys-on-success": onSuccess,
+    "--sys-warning": palette.warning,
+    "--sys-on-warning": onWarning,
+    "--sys-error": palette.error,
+    "--sys-on-error": onError,
+
+    // Elevation Aliases (for platform logic)
+    "--sys-elevation-bg": effectiveBg,
+    "--sys-elevation-card": effectiveSurface,
+    "--sys-elevation-sidebar": effectiveSurfaceSecondary,
+
+    // Legacy / Shadcn Fallbacks
+    "--background": effectiveBg,
+    "--foreground": effectiveText,
+    "--card": effectiveSurface,
+    "--card-foreground": effectiveText,
+    "--popover": effectiveSurface,
+    "--popover-foreground": effectiveText,
+    "--primary": palette.primary,
+    "--primary-foreground": onPrimary,
+    "--secondary": effectiveSurfaceSecondary,
+    "--secondary-foreground": effectiveText,
+    "--muted": effectiveSurfaceSecondary,
+    "--muted-foreground": effectiveText,
+    "--accent": palette.accent,
+    "--accent-foreground": onAccent,
+    "--destructive": palette.error,
+    "--destructive-foreground": onError,
+    "--border": effectiveBorder,
+    "--input": effectiveBorder,
+    "--ring": palette.primary,
+
+    // Custom Typography tokens (System & Global Aliases)
+    "--sys-text": effectiveText,
+    "--sys-text-medium": needsInversion
+      ? mixHex(effectiveText, effectiveBg, 0.3)
+      : palette.textMedium,
+    "--sys-text-low": needsInversion
+      ? mixHex(effectiveText, effectiveBg, 0.5)
+      : palette.textLow,
+
+    "--text": effectiveText,
+    "--text-primary": effectiveText,
+    "--text-secondary": needsInversion
+      ? mixHex(effectiveText, effectiveBg, 0.3)
+      : palette.textMedium,
+    "--text-tertiary": needsInversion
+      ? mixHex(effectiveText, effectiveBg, 0.5)
+      : palette.textLow,
+
+    // Accessibility / Contrast-aware Typography
+    "--text-on-primary": onPrimary,
+    "--text-on-accent": onAccent,
+    "--text-white": "#ffffff",
+    "--text-inverse": effectiveBg,
+  } as React.CSSProperties;
+
+  return (
+    <div style={style} className={themeMode}>
+      {children}
+    </div>
+  );
 }
 
 export default ThemeProvider;

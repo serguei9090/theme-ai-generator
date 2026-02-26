@@ -103,6 +103,8 @@ export default function SettingsDialog() {
     setGeminiApiKey: setGlobalGeminiApiKey,
     openaiApiKey: globalOpenaiApiKey,
     setOpenaiApiKey: setGlobalOpenaiApiKey,
+    copilotApiKey: globalCopilotApiKey,
+    setCopilotApiKey: setGlobalCopilotApiKey,
     providerDefaults,
     saveSession,
     restoreSession,
@@ -119,6 +121,8 @@ export default function SettingsDialog() {
     React.useState(globalGeminiApiKey);
   const [openaiApiKey, setLocalOpenaiApiKey] =
     React.useState(globalOpenaiApiKey);
+  const [copilotApiKey, setLocalCopilotApiKey] =
+    React.useState(globalCopilotApiKey);
   const [ollamaConnected, setOllamaConnected] = React.useState(false);
   const [models, setModels] = React.useState<string[]>([]);
   const [connecting, setConnecting] = React.useState(false);
@@ -132,6 +136,7 @@ export default function SettingsDialog() {
     setDirectorModel(globalDirectorModel);
     setLocalGeminiApiKey(globalGeminiApiKey);
     setLocalOpenaiApiKey(globalOpenaiApiKey);
+    setLocalCopilotApiKey(globalCopilotApiKey);
   }, [
     globalProvider,
     globalModel,
@@ -139,6 +144,7 @@ export default function SettingsDialog() {
     globalDirectorModel,
     globalGeminiApiKey,
     globalOpenaiApiKey,
+    globalCopilotApiKey,
     providerDefaults,
   ]);
 
@@ -194,6 +200,9 @@ export default function SettingsDialog() {
 
       if (typeof parsed.openaiApiKey === "string") {
         setLocalOpenaiApiKey(parsed.openaiApiKey);
+      }
+      if (typeof parsed.copilotApiKey === "string") {
+        setLocalCopilotApiKey(parsed.copilotApiKey);
       }
 
       if (typeof parsed.ollamaConnected === "boolean") {
@@ -374,10 +383,10 @@ export default function SettingsDialog() {
                   handleProviderChange(e.target.value as Provider)
                 }
               >
-                <option value="gemini">gemini (official sdk)</option>
-                <option value="ollama">ollama</option>
-                <option value="openai">openai</option>
-                <option value="copilot">copilot-sdk (legacy proxy)</option>
+                <option value="gemini">Google Gemini (GenAI SDK)</option>
+                <option value="ollama">Ollama (Local LLM)</option>
+                <option value="openai">OpenAI (Direct API)</option>
+                <option value="copilot">GitHub Copilot (Official SDK)</option>
               </select>
             </div>
 
@@ -499,6 +508,31 @@ export default function SettingsDialog() {
                     />
                   </div>
                 )}
+                {provider === "copilot" && (
+                  <div>
+                    <label
+                      className="text-sm font-medium"
+                      htmlFor="copilot-api-key-input"
+                    >
+                      GitHub Token (Optional)
+                    </label>
+                    <Input
+                      id="copilot-api-key-input"
+                      type="password"
+                      className="mt-2"
+                      value={copilotApiKey}
+                      onChange={(e) =>
+                        setLocalCopilotApiKey(
+                          (e.target as HTMLInputElement).value,
+                        )
+                      }
+                      placeholder="ghp_..."
+                    />
+                    <p className="mt-1 text-[10px] text-text-tertiary">
+                      Requires 'copilot' scope. If empty, uses server default.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -528,10 +562,10 @@ export default function SettingsDialog() {
                   setDirectorModel(providerDefaults[nextProvider] || "");
                 }}
               >
-                <option value="gemini">gemini (official sdk)</option>
-                <option value="ollama">ollama</option>
-                <option value="openai">openai</option>
-                <option value="copilot">copilot-sdk (legacy proxy)</option>
+                <option value="gemini">Google Gemini (GenAI SDK)</option>
+                <option value="ollama">Ollama (Local LLM)</option>
+                <option value="openai">OpenAI (Direct API)</option>
+                <option value="copilot">GitHub Copilot (Official SDK)</option>
               </select>
             </div>
 
@@ -661,6 +695,28 @@ export default function SettingsDialog() {
                     />
                   </div>
                 )}
+                {directorProvider === "copilot" && (
+                  <div>
+                    <label
+                      className="text-sm font-medium"
+                      htmlFor="director-copilot-api-key-input"
+                    >
+                      GitHub Token (Optional)
+                    </label>
+                    <Input
+                      id="director-copilot-api-key-input"
+                      type="password"
+                      className="mt-2"
+                      value={copilotApiKey}
+                      onChange={(e) =>
+                        setLocalCopilotApiKey(
+                          (e.target as HTMLInputElement).value,
+                        )
+                      }
+                      placeholder="ghp_..."
+                    />
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -680,6 +736,7 @@ export default function SettingsDialog() {
                   directorModel,
                   geminiApiKey,
                   openaiApiKey,
+                  copilotApiKey,
                   ollamaConnected,
                   defaultPrompt,
                 };
@@ -697,6 +754,7 @@ export default function SettingsDialog() {
                 setGlobalDirectorModel(directorModel);
                 setGlobalGeminiApiKey(geminiApiKey);
                 setGlobalOpenaiApiKey(openaiApiKey);
+                setGlobalCopilotApiKey(copilotApiKey);
               }}
             >
               Save Details

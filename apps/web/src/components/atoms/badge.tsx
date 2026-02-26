@@ -14,6 +14,23 @@ const badgeVariants = cva(
         accent: "border-transparent bg-accent/20 text-text",
         outline: "border-border bg-background text-text-secondary",
         success: "border-transparent bg-success/20 text-text",
+        warning: "border-transparent bg-warning/20 text-text",
+        error: "border-transparent bg-error/20 text-text",
+        destructive: "border-transparent bg-destructive/15 text-destructive",
+
+        // High Contrast variants
+        primary:
+          "border-transparent bg-[var(--sys-primary)] text-[var(--sys-on-primary)]",
+        "primary-accent":
+          "border-transparent bg-[var(--sys-accent)] text-[var(--sys-on-accent)]",
+        "primary-success":
+          "border-transparent bg-[var(--sys-success)] text-[var(--sys-on-success)]",
+
+        // Context-aware variants (for headers/colored containers)
+        "outline-on-dark":
+          "border-[var(--sys-on-primary)]/40 bg-[var(--sys-on-primary)]/10 text-[var(--sys-on-primary)]",
+        "outline-on-primary-container":
+          "border-[var(--sys-on-primary-container)]/30 bg-[var(--sys-on-primary-container)]/10 text-[var(--sys-on-primary-container)]",
       },
     },
     defaultVariants: {

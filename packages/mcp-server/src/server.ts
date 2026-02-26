@@ -336,11 +336,23 @@ function createProtocolServer() {
     .optional();
 
   const paletteSchema = z.object({
-    primary: z.string(),
-    secondary: z.string(),
-    accent: z.string(),
     background: z.string(),
+    surface: z.string(),
+    surfaceSecondary: z.string(),
+    border: z.string(),
+    primary: z.string(),
+    onPrimary: z.string(),
+    primaryContainer: z.string(),
+    primaryHover: z.string(),
+    accent: z.string(),
+    onAccent: z.string(),
+    accentHover: z.string(),
     text: z.string(),
+    textMedium: z.string(),
+    textLow: z.string(),
+    success: z.string(),
+    warning: z.string(),
+    error: z.string(),
   });
 
   server.registerTool(

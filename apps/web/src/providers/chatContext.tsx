@@ -21,6 +21,7 @@ type Message = {
   text: string;
   explain?: string;
   palette?: Palette;
+  palettes?: Palette[];
   styles?: StyleOption[];
 };
 
@@ -46,6 +47,8 @@ type ChatContextType = {
   setGeminiApiKey: (k: string) => void;
   openaiApiKey: string;
   setOpenaiApiKey: (k: string) => void;
+  copilotApiKey: string;
+  setCopilotApiKey: (k: string) => void;
   providerDefaults: ProviderModelDefaults;
   messages: Message[];
   loading: boolean;
@@ -64,16 +67,30 @@ type ChatContextType = {
   restoreSession: () => void;
   chatInput: string;
   setChatInput: (s: string) => void;
+  themeMode: "light" | "dark";
+  setThemeMode: (m: "light" | "dark") => void;
 };
 
 const ChatContext = React.createContext<ChatContextType | null>(null);
 
 const DEFAULT_PALETTE: Palette = {
-  primary: "#0969da",
-  secondary: "#6366f1",
-  accent: "#0ea5e9",
   background: "#ffffff",
-  text: "#24292f",
+  surface: "#f8fafc",
+  surfaceSecondary: "#f1f5f9",
+  border: "#e2e8f0",
+  primary: "#0f172a",
+  onPrimary: "#ffffff",
+  primaryContainer: "#cbd5e1",
+  primaryHover: "#1e293b",
+  accent: "#3b82f6",
+  onAccent: "#ffffff",
+  accentHover: "#2563eb",
+  text: "#0f172a",
+  textMedium: "#475569",
+  textLow: "#94a3b8",
+  success: "#22c55e",
+  warning: "#eab308",
+  error: "#ef4444",
 };
 
 const SETTINGS_STORAGE_KEY = "themeAI:settings";
@@ -94,6 +111,7 @@ function parseStorageSettings(raw: string | null) {
     directorModel: "",
     geminiApiKey: "",
     openaiApiKey: "",
+    copilotApiKey: "",
     storedPrompt: "",
   };
   if (!raw) return result;
@@ -121,6 +139,9 @@ function parseStorageSettings(raw: string | null) {
     }
     if (typeof settings.openaiApiKey === "string") {
       result.openaiApiKey = settings.openaiApiKey;
+    }
+    if (typeof settings.copilotApiKey === "string") {
+      result.copilotApiKey = settings.copilotApiKey;
     }
     if (
       typeof settings.defaultPrompt === "string" &&
@@ -167,6 +188,7 @@ export function ChatProvider({
   const [directorModel, setDirectorModel] = React.useState("gpt-5");
   const [geminiApiKey, setGeminiApiKey] = React.useState("");
   const [openaiApiKey, setOpenaiApiKey] = React.useState("");
+  const [copilotApiKey, setCopilotApiKey] = React.useState("");
   const [providerDefaults, setProviderDefaults] =
     React.useState<ProviderModelDefaults>(FALLBACK_PROVIDER_DEFAULTS);
   const [messages, setMessages] = React.useState<Message[]>([]);
@@ -180,6 +202,7 @@ export function ChatProvider({
     null,
   );
   const [pendingStyles, setPendingStyles] = React.useState<StyleOption[]>([]);
+  const [themeMode, setThemeMode] = React.useState<"light" | "dark">("light");
 
   React.useEffect(() => {
     let cancelled = false;
@@ -192,6 +215,7 @@ export function ChatProvider({
       if (parsed.directorModel) setDirectorModel(parsed.directorModel);
       if (parsed.geminiApiKey) setGeminiApiKey(parsed.geminiApiKey);
       if (parsed.openaiApiKey) setOpenaiApiKey(parsed.openaiApiKey);
+      if (parsed.copilotApiKey) setCopilotApiKey(parsed.copilotApiKey);
 
       const { serverDefaultProvider, resolvedDefaults } =
         await fetchMcpDefaults();
@@ -299,6 +323,7 @@ export function ChatProvider({
           text: result.reply,
           explain: result.explain,
           palette: result.palette,
+          palettes: result.palettes,
           styles: result.styles,
         });
       } catch (err) {
@@ -341,12 +366,14 @@ export function ChatProvider({
               model: model || undefined,
               geminiApiKey: geminiApiKey || undefined,
               openaiApiKey: openaiApiKey || undefined,
+              copilotApiKey: copilotApiKey || undefined,
             },
             director: {
               provider: directorProvider,
               model: directorModel,
               geminiApiKey: geminiApiKey || undefined,
               openaiApiKey: openaiApiKey || undefined,
+              copilotApiKey: copilotApiKey || undefined,
             },
             currentPalette: appliedPalette,
           }),
@@ -372,6 +399,7 @@ export function ChatProvider({
           text: result.reply,
           explain: result.explain,
           palette: result.palette,
+          palettes: result.palettes,
         });
       } catch (err) {
         const message =
@@ -388,6 +416,7 @@ export function ChatProvider({
       model,
       geminiApiKey,
       openaiApiKey,
+      copilotApiKey,
       directorProvider,
       directorModel,
       appliedPalette,
@@ -494,6 +523,7 @@ export function ChatProvider({
         model: model || undefined,
         geminiApiKey: geminiApiKey || undefined,
         openaiApiKey: openaiApiKey || undefined,
+        copilotApiKey: copilotApiKey || undefined,
       });
       setAppliedPalette(result.palette);
       pushAssistantMessage({
@@ -515,6 +545,7 @@ export function ChatProvider({
     model,
     geminiApiKey,
     openaiApiKey,
+    copilotApiKey,
     pushAssistantMessage,
   ]);
 
@@ -559,7 +590,8 @@ export function ChatProvider({
       const payload = JSON.parse(raw) as SavedSession;
       if (payload.provider) setProvider(payload.provider);
       if (payload.model) setModel(payload.model);
-      if (payload.appliedPalette) setAppliedPalette(payload.appliedPalette);
+      if (payload.appliedPalette)
+        setAppliedPalette({ ...DEFAULT_PALETTE, ...payload.appliedPalette });
       if (Array.isArray(payload.messages)) setMessages(payload.messages);
       if (typeof payload.lastPrompt === "string")
         setLastPrompt(payload.lastPrompt);
@@ -585,6 +617,8 @@ export function ChatProvider({
       setGeminiApiKey,
       openaiApiKey,
       setOpenaiApiKey,
+      copilotApiKey,
+      setCopilotApiKey,
       providerDefaults,
       messages,
       loading,
@@ -603,6 +637,8 @@ export function ChatProvider({
       loadingState,
       chatInput,
       setChatInput,
+      themeMode,
+      setThemeMode,
     }),
     [
       provider,
@@ -611,13 +647,13 @@ export function ChatProvider({
       directorModel,
       geminiApiKey,
       openaiApiKey,
+      copilotApiKey,
       providerDefaults,
       messages,
       loading,
       appliedPalette,
       pendingStyles,
       conversationId,
-      loadingState,
       chatInput,
       sendMessage,
       selectStyle,
@@ -628,6 +664,8 @@ export function ChatProvider({
       newChat,
       saveSession,
       restoreSession,
+      loadingState,
+      themeMode,
     ],
   );
 

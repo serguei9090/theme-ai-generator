@@ -2,13 +2,27 @@ import { CopilotClient } from "@github/copilot-sdk";
 import { GoogleGenAI } from "@google/genai";
 
 export const PALETTE_KEYS = [
-  "primary",
-  "secondary",
-  "accent",
   "background",
+  "surface",
+  "surfaceSecondary",
+  "border",
+  "primary",
+  "onPrimary",
+  "primaryContainer",
+  "primaryHover",
+  "accent",
+  "onAccent",
+  "accentHover",
   "text",
+  "textMedium",
+  "textLow",
+  "success",
+  "warning",
+  "error",
 ] as const;
 export type PaletteKey = (typeof PALETTE_KEYS)[number];
+
+export type Palette = Record<PaletteKey, string>;
 
 export type Provider = "gemini" | "ollama" | "openai" | "copilot";
 export type ProviderInput = Provider | "aistudio";
@@ -19,8 +33,6 @@ export type DirectorStyle = {
   rationale: string;
   moodPrompt: string;
 };
-
-export type Palette = Record<PaletteKey, string>;
 
 export type PaletteResult = {
   palette: Palette;
@@ -48,6 +60,7 @@ export type RouteOptions = {
   allowFallback?: boolean;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
   history?: { role: "user" | "assistant"; text: string }[];
 };
 
@@ -62,13 +75,24 @@ export type TweakRequest = {
   allowFallback?: boolean;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
   history?: { role: "user" | "assistant"; text: string }[];
 };
 
 const HEX_REGEX = /^#[0-9a-f]{6}$/;
 
-const SYSTEM_PROMPT =
-  'You are a theme generation assistant for UI/UX and design systems. Return ONLY JSON with keys: primary, secondary, accent, background, text. Each value MUST be a 7-character lowercase hex code. Optionally include "explain" for human display. Never output markdown or extra text.';
+const SYSTEM_PROMPT = `You are a theme generation assistant for UI/UX and design systems. 
+Follow the 60-30-10 Color Architecture:
+- 60% FOUNDATION: background, surface, surfaceSecondary, border, text, textMedium, textLow
+- 30% BRANDING: primary, onPrimary, primaryContainer, primaryHover
+- 10% INTERACTION: accent, onAccent, accentHover, success, warning, error
+
+RULES:
+1. Return ONLY JSON with all 17 keys. Values MUST be 7-character lowercase hex codes.
+2. ACCESSIBILITY: onPrimary and onAccent MUST be high-contrast (usually #ffffff or #0f172a) against primary and accent.
+3. SATURATION: The accent color must have the highest saturation for 10% "pop" visibility.
+4. Optionally include "explain" for human display. 
+Never output markdown or extra text.`;
 
 const DIRECTOR_SYSTEM_PROMPT = `You are a warm, expert Creative Director for product UI design systems.
 Your job is to understand what a user is building and propose 3 distinct, thoughtful palette directions.
@@ -122,15 +146,63 @@ function normalizeHex(input: unknown): string | null {
   return HEX_REGEX.test(value) ? value : null;
 }
 
+function _mixHex(hex1: string, hex2: string, weight = 0.5): string {
+  const rgb1 = hexToRgb(hex1) || { r: 0, g: 0, b: 0 };
+  const rgb2 = hexToRgb(hex2) || { r: 0, g: 0, b: 0 };
+  const r = Math.round(rgb1.r * (1 - weight) + rgb2.r * weight);
+  const g = Math.round(rgb1.g * (1 - weight) + rgb2.g * weight);
+  const b = Math.round(rgb1.b * (1 - weight) + rgb2.b * weight);
+  const toHex = (v: number) => v.toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function adjustBrightness(hex: string, amount: number): string {
+  const rgb = hexToRgb(hex) || { r: 0, g: 0, b: 0 };
+  const r = Math.max(0, Math.min(255, rgb.r + amount));
+  const g = Math.max(0, Math.min(255, rgb.g + amount));
+  const b = Math.max(0, Math.min(255, rgb.b + amount));
+  const toHex = (v: number) => v.toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 function normalizePalette(input: unknown): Palette | null {
   if (!input || typeof input !== "object") return null;
   const record = input as Record<string, unknown>;
   const normalized = {} as Palette;
-  for (const key of PALETTE_KEYS) {
+
+  // Essential keys that logically must be returned by LLM
+  const coreKeys: PaletteKey[] = [
+    "background",
+    "surface",
+    "surfaceSecondary",
+    "border",
+    "primary",
+    "onPrimary",
+    "primaryContainer",
+    "accent",
+    "onAccent",
+    "text",
+    "textMedium",
+    "textLow",
+    "success",
+    "warning",
+    "error",
+  ];
+
+  for (const key of coreKeys) {
     const value = normalizeHex(record[key]);
     if (!value) return null;
     normalized[key] = value;
   }
+
+  // Interaction states - calculate if missing
+  normalized.primaryHover =
+    normalizeHex(record.primaryHover) ||
+    adjustBrightness(normalized.primary, -30);
+  normalized.accentHover =
+    normalizeHex(record.accentHover) ||
+    adjustBrightness(normalized.accent, -30);
+
   return normalized;
 }
 
@@ -239,9 +311,9 @@ function contrastRatio(a: string, b: string) {
 export function evaluatePaletteAccessibility(palette: Palette) {
   return {
     textVsBackground: contrastRatio(palette.text, palette.background),
-    textVsPrimary: contrastRatio(palette.text, palette.primary),
-    textVsSecondary: contrastRatio(palette.text, palette.secondary),
-    textVsAccent: contrastRatio(palette.text, palette.accent),
+    onPrimaryVsPrimary: contrastRatio(palette.onPrimary, palette.primary),
+    onAccentVsAccent: contrastRatio(palette.onAccent, palette.accent),
+    textVsSurface: contrastRatio(palette.text, palette.surface),
   };
 }
 
@@ -306,12 +378,27 @@ function deterministicPalette(seedInput: string): Palette {
   }
 
   const baseHue = seed % 360;
+  const primary = hslToHex(baseHue, 70, 45);
+  const accent = hslToHex((baseHue + 180) % 360, 78, 50);
+
   return {
-    primary: hslToHex(baseHue, 70, 45),
-    secondary: hslToHex((baseHue + 32) % 360, 62, 48),
-    accent: hslToHex((baseHue + 74) % 360, 78, 50),
-    background: hslToHex((baseHue + 180) % 360, 18, 97),
-    text: hslToHex((baseHue + 180) % 360, 20, 14),
+    background: hslToHex((baseHue + 20) % 360, 5, 98),
+    surface: hslToHex((baseHue + 20) % 360, 5, 95),
+    surfaceSecondary: hslToHex((baseHue + 20) % 360, 5, 90),
+    border: hslToHex((baseHue + 20) % 360, 5, 85),
+    primary,
+    onPrimary: contrastRatio(primary, "#ffffff") > 4.5 ? "#ffffff" : "#0f172a",
+    primaryContainer: hslToHex(baseHue, 30, 90),
+    primaryHover: hslToHex(baseHue, 70, 35),
+    accent,
+    onAccent: contrastRatio(accent, "#ffffff") > 4.5 ? "#ffffff" : "#0f172a",
+    accentHover: hslToHex((baseHue + 180) % 360, 78, 40),
+    text: "#0f172a",
+    textMedium: "#334155",
+    textLow: "#64748b",
+    success: "#22c55e",
+    warning: "#eab308",
+    error: "#ef4444",
   };
 }
 
@@ -648,6 +735,7 @@ export async function providerPrompt(
   model?: string,
   geminiApiKey?: string,
   openaiApiKey?: string,
+  copilotApiKey?: string,
   systemPrompt?: string,
   history?: { role: "user" | "assistant"; text: string }[],
 ): Promise<string> {
@@ -668,7 +756,7 @@ export async function providerPrompt(
   if (provider === "gemini")
     return callGemini(fullPrompt, model, geminiApiKey, systemPrompt);
   if (provider === "copilot")
-    return callCopilot(fullPrompt, model, openaiApiKey, systemPrompt);
+    return callCopilot(fullPrompt, model, copilotApiKey, systemPrompt);
   throw new Error(`LLM provider '${provider}' is not supported`);
 }
 
@@ -692,6 +780,7 @@ export async function routeToProvider(
       options.model,
       options.geminiApiKey,
       options.openaiApiKey,
+      options.copilotApiKey,
       undefined,
       options.history,
     );
@@ -815,6 +904,7 @@ export async function discoverStyles(
       model,
       options.geminiApiKey,
       options.openaiApiKey,
+      options.copilotApiKey,
       DIRECTOR_SYSTEM_PROMPT,
       options.history,
     );

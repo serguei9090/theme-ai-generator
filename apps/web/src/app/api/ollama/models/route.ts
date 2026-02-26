@@ -9,8 +9,10 @@ export async function GET() {
     "/models",
   ];
 
+  const base = upstream.replace(/\/$/, "");
   for (const p of candidates) {
-    const url = `${upstream.replace(/\/$/, "")}${p.startsWith("/") ? p : `/${p}`}`;
+    const path = p.startsWith("/") ? p : `/${p}`;
+    const url = `${base}${path}`;
     try {
       const perReqController = new AbortController();
       // timeout after 5s

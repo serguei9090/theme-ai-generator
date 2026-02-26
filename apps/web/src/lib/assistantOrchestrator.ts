@@ -15,11 +15,23 @@ import type {
 import { normalizeProvider } from "./mcpClient";
 
 const PALETTE_KEYS = [
-  "primary",
-  "secondary",
-  "accent",
   "background",
+  "surface",
+  "surfaceSecondary",
+  "border",
+  "primary",
+  "onPrimary",
+  "primaryContainer",
+  "primaryHover",
+  "accent",
+  "onAccent",
+  "accentHover",
   "text",
+  "textMedium",
+  "textLow",
+  "success",
+  "warning",
+  "error",
 ] as const;
 
 type PaletteKey = (typeof PALETTE_KEYS)[number];
@@ -59,10 +71,11 @@ DO NOT output raw JSON unless you are calling a tool. If you are just chatting, 
 
 To call a tool, reply with exactly ONE of the following JSON blocks:
 
-To generate a new palette:
+To generate one or more palettes (max 3):
 {
   "tool": "generate_palette",
-  "moodPrompt": "An optimized prompt for generating the color palette based on all context."
+  "moodPrompt": "An optimized prompt for generating the color palette based on all context.",
+  "count": 1
 }
 
 To suggest 3-4 distinct style directions (discovery):
@@ -75,10 +88,12 @@ To tweak an existing palette (e.g. they asked to make the primary blue):
 {
   "tool": "tweak_palette",
   "mood": "Specific update instructions to tweak the current palette, e.g., 'make the primary color blue'."
-}`;
+}
+
+CRITICAL: You can generate a maximum of 3 palettes at once. If the user asks for more, generate 3 and explain the limit in your text.`;
 
 type ToolCall =
-  | { tool: "generate_palette"; moodPrompt: string }
+  | { tool: "generate_palette"; moodPrompt: string; count?: number }
   | { tool: "discover_styles"; message: string }
   | { tool: "tweak_palette"; mood: string };
 
@@ -109,6 +124,7 @@ async function callGenerateTool(args: {
   allowFallback?: boolean;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
   history?: { role: "user" | "assistant"; text: string }[];
 }) {
   const result = await executeGenerate(args);
@@ -126,6 +142,7 @@ async function callTweakTool(args: {
   allowFallback?: boolean;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
   history?: { role: "user" | "assistant"; text: string }[];
 }) {
   const result = await executeTweak(args);
@@ -138,6 +155,7 @@ async function discoverStylesWithDirector(input: {
   model?: string;
   geminiApiKey?: string;
   openaiApiKey?: string;
+  copilotApiKey?: string;
   history?: { role: "user" | "assistant"; text: string }[];
 }): Promise<StyleOption[]> {
   const styles = await discoverStyles(input.message, {
@@ -145,6 +163,7 @@ async function discoverStylesWithDirector(input: {
     model: input.model,
     geminiApiKey: input.geminiApiKey,
     openaiApiKey: input.openaiApiKey,
+    copilotApiKey: input.copilotApiKey,
     history: input.history,
   });
 
@@ -181,6 +200,8 @@ export async function handleAssistantMessage(
   const model = request.paletteEngine?.model?.trim() || undefined;
   const geminiApiKey = request.paletteEngine?.geminiApiKey?.trim() || undefined;
   const openaiApiKey = request.paletteEngine?.openaiApiKey?.trim() || undefined;
+  const copilotApiKey =
+    request.paletteEngine?.copilotApiKey?.trim() || undefined;
 
   const directorProvider =
     normalizeProvider(request.director?.provider) || "gemini";
@@ -188,6 +209,8 @@ export async function handleAssistantMessage(
   const directorGeminiApiKey =
     request.director?.geminiApiKey?.trim() || undefined;
   const directorApiKey = request.director?.openaiApiKey?.trim() || undefined;
+  const directorCopilotApiKey =
+    request.director?.copilotApiKey?.trim() || undefined;
 
   const history = Array.isArray(request.history)
     ? request.history.slice(-10)
@@ -212,6 +235,7 @@ export async function handleAssistantMessage(
         allowFallback: true,
         geminiApiKey,
         openaiApiKey,
+        copilotApiKey,
         history,
       });
       state.hasGeneratedPalette = true;
@@ -243,6 +267,7 @@ export async function handleAssistantMessage(
       directorModel,
       directorGeminiApiKey,
       directorApiKey,
+      directorCopilotApiKey,
       DIRECTOR_SYSTEM_PROMPT,
       history,
     );
@@ -260,21 +285,48 @@ export async function handleAssistantMessage(
 
     // Agent called [generate_palette]
     if (toolCall.tool === "generate_palette") {
-      const gResult = await callGenerateTool({
-        mood: toolCall.moodPrompt,
-        provider,
-        model,
-        allowFallback: true,
-        geminiApiKey,
-        openaiApiKey,
-        history,
-      });
+      const count = Math.min(Math.max(toolCall.count || 1, 1), 3);
+      const palettes: Palette[] = [];
+
+      // Sequence tool calls to ensure valid results
+      for (let i = 0; i < count; i++) {
+        // We slightly vary the mood for multiple options to get distinct results
+        const variedMood =
+          count > 1
+            ? `${toolCall.moodPrompt} (Option ${i + 1})`
+            : toolCall.moodPrompt;
+        const gResult = await callGenerateTool({
+          mood: variedMood,
+          provider,
+          model,
+          allowFallback: true,
+          geminiApiKey,
+          openaiApiKey,
+          copilotApiKey,
+          history,
+        });
+        palettes.push(gResult.palette);
+      }
+
       state.hasGeneratedPalette = true;
+
+      let reply = "Here is your custom generated palette! How does it look?";
+      if (count > 1) {
+        reply = `I've generated ${count} options for you! Which one do you prefer?`;
+      }
+
+      // If the LLM requested more than 3, add a disclaimer
+      if (typeof toolCall.count === "number" && toolCall.count > 3) {
+        reply +=
+          "\n\nNote: I can only generate a maximum of 3 palettes at once.";
+      }
+
       return {
         kind: "palette",
-        reply: "Here is your custom generated palette! How does it look?",
+        reply,
         conversationId,
-        palette: gResult.palette,
+        palette: palettes[0],
+        palettes: palettes,
       };
     }
 
@@ -286,6 +338,7 @@ export async function handleAssistantMessage(
         model: directorModel,
         geminiApiKey: directorGeminiApiKey,
         openaiApiKey: directorApiKey,
+        copilotApiKey: directorCopilotApiKey,
         history,
       });
       state.styles = styles;
@@ -316,6 +369,7 @@ export async function handleAssistantMessage(
         allowFallback: true,
         geminiApiKey,
         openaiApiKey,
+        copilotApiKey,
         history,
       });
       return {

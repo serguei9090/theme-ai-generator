@@ -1,5 +1,6 @@
-"use client";
 import {
+  ChevronDown,
+  ChevronRight,
   PencilLine,
   SlidersHorizontal,
   Sparkles,
@@ -18,12 +19,32 @@ import {
   DialogTitle,
 } from "../atoms/dialog";
 
-const PALETTE_KEYS: Array<keyof Palette> = [
-  "primary",
-  "secondary",
-  "accent",
-  "background",
-  "text",
+const GROUPS = [
+  {
+    id: "surfaces",
+    name: "Surfaces",
+    keys: ["background", "surface", "surfaceSecondary", "border"] as const,
+  },
+  {
+    id: "branding",
+    name: "Branding",
+    keys: ["primary", "primaryContainer", "primaryHover"] as const,
+  },
+  {
+    id: "actions",
+    name: "Actions",
+    keys: ["accent", "accentHover"] as const,
+  },
+  {
+    id: "typography",
+    name: "Typography",
+    keys: ["text", "textMedium", "textLow", "onPrimary", "onAccent"] as const,
+  },
+  {
+    id: "feedback",
+    name: "Feedback",
+    keys: ["success", "warning", "error"] as const,
+  },
 ];
 
 function normalizeHex(hex: string) {
@@ -75,11 +96,16 @@ export default function PaletteControls({
   const [editorMode, setEditorMode] = React.useState<"manual" | "prompt">(
     "manual",
   );
-  const [manualHex, setManualHex] = React.useState(appliedPalette.primary);
-  const [rgb, setRgb] = React.useState({ r: 9, g: 105, b: 218 });
+  const [manualHex, setManualHex] = React.useState(
+    appliedPalette?.background || "#ffffff",
+  );
+  const [rgb, setRgb] = React.useState({ r: 255, g: 255, b: 255 });
   const [singlePrompt, setSinglePrompt] = React.useState("");
   const [isPromptDialogOpen, setIsPromptDialogOpen] = React.useState(false);
   const [regeneratePrompt, setRegeneratePrompt] = React.useState("");
+  const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(
+    new Set(),
+  );
 
   const validManualHex = normalizeHex(manualHex);
   const canSendPrompt = !loading && regeneratePrompt.trim().length > 0;
@@ -89,7 +115,7 @@ export default function PaletteControls({
 
   async function handleScopedRegenerate() {
     if (!canSendPrompt) return;
-    const message = `Generate a ${targetLabel} color palette. Mood: ${regeneratePrompt.trim()}`;
+    const message = `[COMMAND]: GENERATE_PALETTE for ${targetLabel}. STYLE: ${regeneratePrompt.trim()}. DIRECT ACTION ONLY. NO CHAT.`;
     await sendMessage(message);
     setRegeneratePrompt("");
     setIsPromptDialogOpen(false);
@@ -131,63 +157,100 @@ export default function PaletteControls({
     void tweakColorByPrompt(key, prompt);
   }
 
+  const toggleGroup = (id: string) => {
+    const next = new Set(expandedGroups);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpandedGroups(next);
+  };
+
   return (
     <section className="rounded-lg border border-border bg-white p-4 shadow-sm">
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-text">Palette Controls</h2>
         <p className="text-xs text-text-tertiary mt-1">
-          Click the pencil on any swatch to edit manually or with a focused AI
-          prompt.
+          Organize and refine your 60-30-10 colors.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {PALETTE_KEYS.map((key) => (
-          <div key={key} className="rounded-md border border-border p-2">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-[11px] font-medium capitalize text-text">
-                {key}
-              </p>
-              <button
-                type="button"
-                aria-label={`Edit ${key}`}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-white text-text-secondary transition-colors hover:bg-surface hover:text-text"
-                onClick={() => openEditor(key)}
-                disabled={loading}
-              >
-                <PencilLine className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <div
-              className="h-8 rounded border border-border"
-              style={{ backgroundColor: appliedPalette[key] }}
-            />
-            <p className="mt-2 text-[11px] text-text-secondary font-mono">
-              {appliedPalette[key].toLowerCase()}
-            </p>
+      <div className="space-y-3">
+        {GROUPS.map((group) => (
+          <div
+            key={group.id}
+            className="overflow-hidden rounded-md border border-border"
+          >
+            <button
+              type="button"
+              className="flex w-full items-center justify-between bg-surface px-3 py-2 text-xs font-semibold text-text hover:bg-surface/80"
+              onClick={() => toggleGroup(group.id)}
+            >
+              <div className="flex items-center gap-2">
+                {expandedGroups.has(group.id) ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-text-tertiary" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 text-text-tertiary" />
+                )}
+                {group.name}
+              </div>
+              <span className="text-[10px] font-normal text-text-tertiary">
+                {group.keys.length} colors
+              </span>
+            </button>
+            {expandedGroups.has(group.id) && (
+              <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-4">
+                {group.keys.map((key) => (
+                  <div
+                    key={key}
+                    className="flex flex-col gap-1.5 rounded-md border border-border p-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-medium text-text-secondary">
+                        {key}
+                      </p>
+                      <button
+                        type="button"
+                        aria-label={`Edit ${key}`}
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-border bg-white text-text-secondary transition-colors hover:bg-surface hover:text-text"
+                        onClick={() => openEditor(key)}
+                        disabled={loading}
+                      >
+                        <PencilLine className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div
+                      className="h-6 w-full rounded border border-border/50"
+                      style={{ backgroundColor: appliedPalette[key] }}
+                    />
+                    <p className="text-[9px] font-mono text-text-tertiary">
+                      {appliedPalette[key].toUpperCase()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="mt-4">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            disabled={loading}
-            onClick={regenerateAllColors}
-          >
-            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-            Regenerate All
-          </Button>
-          <Button
-            variant="outline"
-            disabled={loading}
-            onClick={() => setIsPromptDialogOpen(true)}
-          >
-            <WandSparkles className="mr-1.5 h-3.5 w-3.5" />
-            Regenerate {targetLabel}
-          </Button>
-        </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          disabled={loading}
+          onClick={regenerateAllColors}
+          className="bg-white hover:bg-surface"
+        >
+          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+          Surprise Me
+        </Button>
+        <Button
+          variant="outline"
+          disabled={loading}
+          onClick={() => setIsPromptDialogOpen(true)}
+          className="bg-white hover:bg-surface"
+        >
+          <WandSparkles className="mr-1.5 h-3.5 w-3.5" />
+          Remix {targetLabel}
+        </Button>
       </div>
 
       <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
@@ -303,7 +366,7 @@ export default function PaletteControls({
                 className="mt-2 min-h-24 w-full rounded-md border border-border px-3 py-2 text-sm"
                 value={singlePrompt}
                 onChange={(e) => setSinglePrompt(e.target.value)}
-                placeholder={`Describe only the ${activeLabel} color update (example: deeper royal blue with premium feel).`}
+                placeholder={`Describe only the ${activeLabel} color update.`}
               />
             </div>
           )}
@@ -337,11 +400,10 @@ export default function PaletteControls({
           </DialogTitle>
           <DialogHeader>
             <h3 className="text-lg font-semibold text-text">
-              Regenerate {targetLabel}
+              Remix {targetLabel}
             </h3>
             <p className="text-sm text-text-secondary">
-              Enter a mood prompt for this view. One request will be sent to
-              chat.
+              Enter a style or mood to transform this view.
             </p>
           </DialogHeader>
 
