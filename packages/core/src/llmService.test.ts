@@ -86,6 +86,13 @@ mock.module("@github/copilot-sdk", () => ({
 }));
 
 describe("llmService", () => {
+  beforeEach(() => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    process.env.GEMINI_API_KEY = "test-key";
+    process.env.OLLAMA_DEFAULT_MODEL = "llama3";
+    process.env.PROVIDER_DEBUG = "false";
+  });
+
   describe("pure functions", () => {
     describe("canonicalizeProvider", () => {
       it("canonicalizes aistudio to gemini", () => {
@@ -284,9 +291,6 @@ describe("llmService", () => {
 
     beforeEach(() => {
       originalFetch = globalThis.fetch;
-      process.env.OPENAI_API_KEY = "sk-test";
-      process.env.GEMINI_API_KEY = "test-key";
-      process.env.OLLAMA_DEFAULT_MODEL = "llama3";
     });
 
     afterEach(() => {
