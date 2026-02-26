@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   diagnoseServerIssue,
   generateThemePalette,
+  normalizeProvider,
   resolveMcpBaseUrl,
 } from "./mcpClient";
 
@@ -59,6 +60,41 @@ describe("mcpClient", () => {
 
     await generateThemePalette({ mood: "modern ui" });
     expect(requestedUrl).toContain("/api/mcp/generate");
+    globalThis.fetch = originalFetch;
+  });
+
+  describe("normalizeProvider", () => {
+    it("canonicalizes aistudio to gemini", () => {
+      expect(normalizeProvider("aistudio")).toBe("gemini");
+    });
+
+    it("defaults to ollama for invalid input", () => {
+      expect(normalizeProvider(undefined)).toBe("ollama");
+      expect(normalizeProvider("unknown" as any)).toBe("ollama");
+    });
+
+    it("preserves valid providers", () => {
+      expect(normalizeProvider("openai")).toBe("openai");
+      expect(normalizeProvider("gemini")).toBe("gemini");
+      expect(normalizeProvider("copilot")).toBe("copilot");
+    });
+  });
+
+  it("handles fetch errors and diagnostics", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ error: "operation was aborted" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )) as typeof fetch;
+
+    try {
+      await generateThemePalette({ mood: "fail" });
+    } catch (error: any) {
+      expect(error.message).toContain("Ollama likely timed out");
+    }
     globalThis.fetch = originalFetch;
   });
 });
