@@ -1,4 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
+import type { Palette } from "@theme-ai/core";
+// Mock @theme-ai/core
+import * as realCore from "@theme-ai/core";
 import {
   createMcpServer,
   executeGenerate,
@@ -6,19 +9,52 @@ import {
   parseCorsAllowedOrigins,
 } from "./server";
 
-// Mock @theme-ai/core
 mock.module("@theme-ai/core", () => ({
-  canonicalizeProvider: (p: any) =>
-    p === "gemini" || p === "ollama" ? p : "ollama",
-  validatePalette: (p: any) => p && typeof p === "object" && "primary" in p,
+  ...realCore,
   routeToProvider: async () => ({
-    palette: { primary: "#000000" },
+    palette: {
+      background: "#ffffff",
+      surface: "#f8fafc",
+      surfaceSecondary: "#f1f5f9",
+      border: "#e2e8f0",
+      primary: "#000000",
+      onPrimary: "#ffffff",
+      primaryContainer: "#334155",
+      primaryHover: "#111111",
+      accent: "#3b82f6",
+      onAccent: "#ffffff",
+      accentHover: "#2563eb",
+      text: "#0f172a",
+      textMedium: "#334155",
+      textLow: "#64748b",
+      success: "#22c55e",
+      warning: "#eab308",
+      error: "#ef4444",
+    },
     explain: "Mocked explain",
     providerUsed: "ollama",
     fallbackUsed: false,
   }),
   tweakPalette: async () => ({
-    palette: { primary: "#ffffff" },
+    palette: {
+      background: "#ffffff",
+      surface: "#f8fafc",
+      surfaceSecondary: "#f1f5f9",
+      border: "#e2e8f0",
+      primary: "#ffffff", // updated
+      onPrimary: "#ffffff",
+      primaryContainer: "#334155",
+      primaryHover: "#eeeeee",
+      accent: "#3b82f6",
+      onAccent: "#ffffff",
+      accentHover: "#2563eb",
+      text: "#0f172a",
+      textMedium: "#334155",
+      textLow: "#64748b",
+      success: "#22c55e",
+      warning: "#eab308",
+      error: "#ef4444",
+    },
     explain: "Mocked tweak",
     providerUsed: "deterministic",
     fallbackUsed: false,
@@ -28,19 +64,6 @@ mock.module("@theme-ai/core", () => ({
     { id: "s2", title: "S2", rationale: "R2", moodPrompt: "M2" },
     { id: "s3", title: "S3", rationale: "R3", moodPrompt: "M3" },
   ],
-  HttpError: class extends Error {
-    constructor(
-      public status: number,
-      message: string,
-      public code: string,
-    ) {
-      super(message);
-    }
-  },
-  toHttpError: (e: any) => {
-    if (e.status) return e;
-    return { status: 500, message: "Internal Error", code: "INTERNAL_ERROR" };
-  },
 }));
 
 describe("mcp-server", () => {
@@ -90,6 +113,26 @@ describe("mcp-server", () => {
     });
   });
 
+  const fullValidPalette: Palette = {
+    background: "#ffffff",
+    surface: "#f8fafc",
+    surfaceSecondary: "#f1f5f9",
+    border: "#e2e8f0",
+    primary: "#000000",
+    onPrimary: "#ffffff",
+    primaryContainer: "#334155",
+    primaryHover: "#111111",
+    accent: "#3b82f6",
+    onAccent: "#ffffff",
+    accentHover: "#2563eb",
+    text: "#0f172a",
+    textMedium: "#334155",
+    textLow: "#64748b",
+    success: "#22c55e",
+    warning: "#eab308",
+    error: "#ef4444",
+  };
+
   describe("executeTweak", () => {
     it("throws 400 if palette is invalid", async () => {
       expect(
@@ -98,9 +141,8 @@ describe("mcp-server", () => {
     });
 
     it("calls tweakPalette and returns result", async () => {
-      const palette = { primary: "#000000" };
       const result = await executeTweak({
-        palette,
+        palette: fullValidPalette,
         provider: "ollama",
         updates: { primary: "#ffffff" },
       });
@@ -152,7 +194,7 @@ describe("mcp-server", () => {
       const res = await fetch(`${baseUrl}/tweak`, {
         method: "POST",
         body: JSON.stringify({
-          palette: { primary: "#000000" },
+          palette: fullValidPalette,
           updates: { primary: "#ffffff" },
           provider: "ollama",
         }),

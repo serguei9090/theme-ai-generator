@@ -21,7 +21,7 @@
     "format": "biome format --write",
     "typecheck": "bun run typecheck:web",
     "typecheck:web": "bunx tsc --project apps/web/tsconfig.json --noEmit",
-    "test": "bun test apps/web/src/lib/*.test.ts packages/core/src/*.test.ts packages/mcp-server/src/*.test.ts",
+    "test": "bun test ./packages/core/src/ && bun test ./packages/mcp-server/src/ && bun test ./apps/web/src/lib/",
     "test:web": "cd apps/web && bun run test",
     "test:core": "bun test packages/core/src/*.test.ts",
     "test:mcp": "bun test packages/mcp-server/src/*.test.ts",
