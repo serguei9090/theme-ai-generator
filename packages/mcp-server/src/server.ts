@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   type CallToolResult,
@@ -102,8 +103,9 @@ export function parseCorsAllowedOrigins(raw: string | undefined): string[] {
 
 const CORS_ALLOWED = parseCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS);
 
+const logPrefix = "[MCP]";
 function log(msg: string) {
-  if (DEBUG) console.log(`[MCP] ${msg}`);
+  if (DEBUG) console.error(`${logPrefix} ${msg}`);
 }
 
 function getAllowedOrigin(reqOrigin?: string | null) {
@@ -801,7 +803,7 @@ export function createMcpServer() {
   });
 }
 
-export function startMcpServer(port = PORT) {
+export async function startMcpServer(port = PORT) {
   const server = createMcpServer();
 
   server.on("error", (error) => {
@@ -813,23 +815,36 @@ export function startMcpServer(port = PORT) {
   });
 
   server.listen(port, () => {
-    console.log(`MCP server listening on http://localhost:${port}`);
-    console.log(`MCP Streamable HTTP endpoint: http://localhost:${port}/mcp`);
-    console.log(
+    console.error(`MCP HTTP server listening on http://localhost:${port}`);
+    console.error(`MCP Streamable HTTP endpoint: http://localhost:${port}/mcp`);
+    console.error(
       `CORS allowed origins: ${CORS_ALLOWED.length ? CORS_ALLOWED.join(", ") : "(none configured)"}`,
     );
-    if (DEBUG) console.log("[MCP] DEBUG mode enabled");
+    if (DEBUG) console.error("[MCP] DEBUG mode enabled");
   });
 
   return server;
 }
 
+export async function runStdioServer() {
+  const mcpServer = createProtocolServer();
+  const transport = new StdioServerTransport();
+  await mcpServer.connect(transport);
+  console.error("MCP Server running on stdio transport");
+}
+
 const entryScriptPath = process.argv[1]?.replaceAll("\\", "/") || "";
-const shouldStartServer =
+const shouldRunStandalone =
   (entryScriptPath.endsWith("server.ts") ||
     entryScriptPath.endsWith("server.js")) &&
   !process.env.NEXT_RUNTIME;
 
-if (shouldStartServer) {
-  startMcpServer();
+if (shouldRunStandalone) {
+  const isHttp =
+    process.argv.includes("--transport") && process.argv.includes("http");
+  if (isHttp) {
+    startMcpServer();
+  } else {
+    runStdioServer();
+  }
 }

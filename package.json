@@ -23,6 +23,7 @@
     "test:web": "cd apps/web && bun run test",
     "test:core": "bun test packages/core/src/*.test.ts",
     "test:mcp": "bun test packages/mcp-server/src/*.test.ts",
+    "test:manual-mcp": "bun run scripts/mcp-test.ts",
     "prepare": "lefthook install"
   },
   "dependencies": {
