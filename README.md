@@ -35,7 +35,7 @@ For quick testing or to containerize the application, you can use Docker or our 
 #### Option A: Quick Local Start (One-Liner)
 If you have `bun` and `ollama` (running) installed, run this to start the app in one command:
 ```bash
-bun install && cp .env.example.mini .env && cp .env apps/web/.env.local && bun run dev:web
+bun install && cp .env.example.mini .env && cp .env apps/web/.env.local && bun run dev
 ```
 
 #### Option B: Docker Testing
@@ -70,14 +70,14 @@ cp .env apps/web/.env.local
 #### 2. Run the Web App (Full UI)
 If you want the full graphical interface for generating and previewing palettes:
 ```bash
-bun run dev:web
+bun run dev
 ```
 Open `http://localhost:3000`
 
 #### 3. Run the Standalone MCP Server
 If you want to plug the color generator directly into your AI IDE (Copilot, Claude Desktop, etc.) without needing the web UI:
 ```bash
-bun run dev:mcp
+bun run mcp:dev
 ```
 
 ### Copilot Usage Evidence
@@ -169,7 +169,7 @@ The Native MCP server allows you to generate color systems directly inside your 
 If you exclusively want to use the MCP features:
 1.  **Clone & Install**: `git clone ... && bun install`
 2.  **Configure**: `cp packages/mcp-server/.env.example packages/mcp-server/.env`
-3.  **Run**: `bun run dev:mcp` (Starts the server on port `41234` by default)
+3.  **Run**: `bun run mcp:dev` (Starts the server on port `41234` by default)
 
 ### 🔌 Integration Examples
 
@@ -245,13 +245,45 @@ The standard output format for a palette object across the system is normalized:
 
 ## Commands
 
+### 🛠️ Development
 Run these from the root of the monorepo:
-
-- **Web App**: `bun run dev:web`
-- **MCP Server**: `bun run dev:mcp`
-- **Typecheck everything**: `bun run typecheck`
-- **Typecheck web specifically**: `bun run typecheck:web`
+- **Web App**: `bun run dev` (Hot-reloading @ port 3000)
+- **MCP Server**: `bun run mcp:dev` (Watch mode @ port 41234)
 - **Lint**: `bun run lint`
+
+### 🚀 Production (Recommended)
+For performance-critical environments or final demos:
+
+1. **Build & Optimise**:
+   ```bash
+   bun run build
+   ```
+2. **Launch Production Web**:
+   ```bash
+   bun run start
+   ```
+3. **Launch Production MCP**:
+   ```bash
+   bun run mcp
+   ```
+
+### 🧪 Testing & Quality
+- **Typecheck**: `bun run typecheck`
+- **Run All Tests**: `bun run test`
+
+---
+
+## 🛠️ Troubleshooting
+
+### Port 41234 is Busy?
+If the MCP server fails to start because the address is in use:
+1. Identify the process: `netstat -ano | findstr :41234`
+2. Kill it: `taskkill /F /PID <PID_NUMBER>`
+
+### Ollama Not Responding?
+Ensure Ollama is running and accessible. Test it with:
+`curl http://localhost:11434/api/tags`
+If you get a connection error, Ollama is likely not started.
 
 ---
 
