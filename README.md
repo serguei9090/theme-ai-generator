@@ -26,7 +26,7 @@ The app is designed for quick experimentation and iterative refinement. Users ca
 The project focuses on creative speed, consistent output contracts, and practical presentation quality. Instead of abstract swatches only, it demonstrates how a palette behaves in real UI structures (navigation, cards, tables, pricing blocks, activity panels, editor panes, and mobile cards). This makes the output easier to evaluate for readability, hierarchy, and brand tone.
 
 ### Demo Materials
-- **Demo Video**: [YouTube Link (Replace Me)](https://youtube.com/watch?v=REPLACE_ME)
+- **Demo Video**: [YouTube Link](https://youtu.be/73nXIDBiW3k)
 - **Visual Gallery**: See our [Mockup & UI Gallery](./docs/screenshots/README.md)
 - **Copilot Evidence**: Read the [Prompt Highlights](./docs/PROMPT_HIGHLIGHTS.md) (Curated) or the [Full Log](./docs/copilot_prompt_respopnse-RAW.md).
 
