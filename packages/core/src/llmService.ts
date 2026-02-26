@@ -104,6 +104,88 @@ Each object must have:
   - moodPrompt: a terse palette-generation prompt optimised for an LLM colour tool
 Do NOT include markdown, explanation, or any text outside the JSON.`;
 
+const COLOR_INTENT_SYSTEM_PROMPT = `You are a color intent interpreter for a UI design system color editor.
+Given a palette color key name, the user's freeform request, and the existing palette context, your ONLY job is to determine
+exactly which hex color the user intends for that specific slot.
+
+RULES:
+1. Analyze the user's intent even if their wording is vague or poetic (e.g. "green tree" → emerald green; "ocean" → deep cyan-blue).
+2. Consider the UI role of the palette key (e.g. "primary" is a brand color, "accent" is a highlight, "background" should be subtle).
+3. Ensure the chosen color suits a professional UI design system — not overly garish or clashing.
+4. Return ONLY a JSON object with exactly two keys:
+   - "hex": a valid 7-character lowercase hex color (e.g. "#2d6a4f")
+   - "interpretation": a concise 1-sentence explanation of your reasoning (e.g. "Interpreted 'green tree' as a rich forest green #2d6a4f fitting a primary brand slot.")
+Never output markdown, code blocks, or any other text.`;
+
+export type ColorIntentResult = {
+  hex: string;
+  interpretation: string;
+};
+
+export type InterpretColorRequest = {
+  key: string;
+  userPrompt: string;
+  currentPalette: Palette;
+  provider: Provider;
+  model?: string;
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+  copilotApiKey?: string;
+};
+
+export async function interpretColorIntent(
+  request: InterpretColorRequest,
+): Promise<ColorIntentResult> {
+  const {
+    key,
+    userPrompt,
+    currentPalette,
+    provider,
+    model,
+    geminiApiKey,
+    openaiApiKey,
+    copilotApiKey,
+  } = request;
+
+  const contextPrompt = [
+    `Palette key to update: "${key}"`,
+    `User request: "${userPrompt}"`,
+    `Current palette context (for harmony reference):`,
+    JSON.stringify(currentPalette, null, 2),
+  ].join("\n");
+
+  const raw = await providerPrompt(
+    provider,
+    contextPrompt,
+    model,
+    geminiApiKey,
+    openaiApiKey,
+    copilotApiKey,
+    COLOR_INTENT_SYSTEM_PROMPT,
+  );
+
+  const parsed = extractJsonFromText(raw);
+  if (!parsed) {
+    throw new Error(
+      `Color intent interpreter returned unparseable response: ${raw.slice(0, 200)}`,
+    );
+  }
+
+  const hex = normalizeHex(parsed.hex ?? "");
+  if (!hex) {
+    throw new Error(
+      `Color intent interpreter returned an invalid hex: ${String(parsed.hex)}`,
+    );
+  }
+
+  const interpretation =
+    typeof parsed.interpretation === "string"
+      ? parsed.interpretation.trim()
+      : `Interpreted "${userPrompt}" as ${hex} for the ${key} slot.`;
+
+  return { hex, interpretation };
+}
+
 type IntentPlan = {
   surface: "website" | "webapp" | "desktop" | "mobile" | "general";
   styleHints: string[];

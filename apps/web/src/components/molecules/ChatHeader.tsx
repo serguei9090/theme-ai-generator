@@ -25,42 +25,62 @@ const STYLE_CATEGORIES = [
   {
     name: "Websites & Landing Pages",
     prompts: [
-      "Luxury style website",
-      "Bright eco-friendly sustainable brand",
+      "Luxury brand website",
+      "Eco-friendly sustainable brand",
       "Modern e-commerce landing page",
+      "Bold SaaS marketing site",
     ],
   },
   {
-    name: "Dashboards",
+    name: "Dashboards & Admin",
     prompts: [
-      "Minimal modern dashboard",
+      "Minimal modern SaaS dashboard",
       "Data-heavy analytics dashboard",
       "Creative studio admin panel",
+      "Dark operations control center",
     ],
   },
 ];
 
 const PROMPT_TEMPLATES: Record<string, string> = {
+  // ── Apps & Products ──────────────────────────────────────────────────────
   "Clean banking or fintech app":
-    "Generate a professional color palette for a clean banking and fintech application. Focus on trustworthiness and reliability using deep trust blues, crisp whites, and a vibrant primary accent for call-to-actions. Ensure strong contrast for financial data.",
+    "Generate a complete UI color palette for a modern mobile banking and fintech application. Surface: mobile app. Audience: professionals managing personal finances. Mood: trustworthy, reliable, calm. Use deep navy or slate blue as the primary brand color, crisp white or very light grey backgrounds, and a vivid teal or green accent for CTAs and positive transaction states. Ensure WCAG-AA contrast on all text. Include clear error (red) and success (green) states for transaction feedback.",
+
   "Calm health and wellness tracker":
-    "Generate a soothing and accessible color palette for a health and wellness tracker. Use soft greens, calming teals, and light neutrals to evoke vitality and peace. Ensure the colors feel organic and accessible.",
+    "Generate a complete UI color palette for a health and wellness tracking web app. Surface: mobile-first web app. Audience: adults focused on mindfulness, fitness, or mental health. Mood: calm, organic, safe, motivating. Use soft sage green or muted teal as the primary brand color, warm off-white backgrounds, and a gentle amber or coral accent. Typography colors must be readable at small sizes. The palette should feel spa-like — never clinical or harsh.",
+
   "Dark mode developer tool or IDE":
-    "Generate a high-contrast dark mode palette for a developer tool. Focus on deep charcoal backgrounds with vibrant syntax-highlighting accents in violet, cyan, and emerald. Optimized for long-term eye comfort.",
+    "Generate a complete UI color palette for a dark-mode developer tool or code editor. Surface: desktop application. Audience: professional software engineers spending 8+ hours daily in the tool. Mood: focused, technical, low eye strain. Use a very dark charcoal (#1a1b26 range) as background, mid-grey surfaces for sidebars and panels, and two distinct accents — a primary in electric violet or cyan for interactive elements and a secondary in amber for warnings. Text must be high-contrast against dark backgrounds.",
+
   "Playful education web app":
-    "Generate a vibrant and energetic color palette for an education web app. Use a playful multi-color approach with bright yellows, purples, and oranges to engage students. Bold and enthusiastic branding.",
-  "Luxury style website":
-    "Generate an elegant and sophisticated color palette for a luxury brand website. Use a palette of champagne, charcoal, and refined gold accents. Focus on high-end minimalism and premium spacing.",
-  "Bright eco-friendly sustainable brand":
-    "Generate a fresh, eco-friendly color palette for a sustainable brand. Use earth tones, forest greens, and sun-washed neutrals. Should feel natural, organic, and environmentally conscious.",
+    "Generate a complete UI color palette for a gamified education platform targeting K-12 students. Surface: web app used on tablets and desktops. Audience: children aged 8–16 and their teachers. Mood: energetic, fun, encouraging, accessible. Use a warm and bold primary (purple, cobalt blue, or orange), a bright contrasting accent for reward states and CTAs, and light neutral backgrounds to keep text readable. The palette must feel dynamic and youthful without being overwhelming.",
+
+  // ── Websites & Landing Pages ─────────────────────────────────────────────
+  "Luxury brand website":
+    "Generate a complete UI color palette for a luxury lifestyle brand marketing website. Surface: desktop-first website. Audience: high-income consumers aged 30–55. Mood: refined, premium, exclusive, timeless. Use near-black or deep charcoal as the primary text and UI color, warm champagne or ivory for backgrounds, and a restrained gold or bronze as the sole accent. The palette must feel expensive and editorial — no saturated colors, no flat digital blues.",
+
+  "Eco-friendly sustainable brand":
+    "Generate a complete UI color palette for an eco-friendly direct-to-consumer brand website. Surface: marketing website. Audience: environmentally conscious shoppers aged 25–45. Mood: natural, honest, optimistic, grounded. Use earth green or forest green as the primary brand color, warm linen or parchment backgrounds, and terracotta or muted ochre as the accent. Avoid plastics-looking bright white or neon accents. The palette must feel like it came from nature.",
+
   "Modern e-commerce landing page":
-    "Generate a high-conversion color palette for a modern e-commerce landing page. Clean white foundation with a bold primary branding color and high-impact accent for 'Add to Cart' buttons.",
-  "Minimal modern dashboard":
-    "Generate a clean, minimal palette for a modern SaaS dashboard. Focus on a light grey/white background, subtle borders, and a single strong primary color for data highlights and navigation.",
+    "Generate a complete UI color palette for a modern high-conversion e-commerce landing page. Surface: marketing + shopping website. Audience: general consumers browsing on mobile. Mood: clear, energetic, trustworthy, action-oriented. Use a clean white or very light grey background, a bold and confident primary brand color (deep blue, vibrant red, or rich indigo), and a high-visibility accent specifically for 'Buy Now' and 'Add to Cart' CTAs. Ensure the CTA accent has maximum contrast against all backgrounds.",
+
+  "Bold SaaS marketing site":
+    "Generate a complete UI color palette for a bold B2B SaaS marketing website targeting technical decision-makers. Surface: desktop-first marketing website. Audience: CTOs, engineering leads, product managers. Mood: confident, modern, authoritative, innovative. Use a deep navy or dark indigo as the foundation, a clean white or near-white for content areas, and a vibrant electric blue or green accent for CTAs and key highlights. The palette should signal technical excellence and startup energy.",
+
+  // ── Dashboards & Admin ───────────────────────────────────────────────────
+  "Minimal modern SaaS dashboard":
+    "Generate a complete UI color palette for a minimal SaaS product dashboard. Surface: web app, desktop viewport. Audience: business professionals using the tool daily for task and project management. Mood: clean, focused, productive, uncluttered. Use a pure white or very light cool-grey background, subtle border colors for card separation, a confident blue or indigo primary for navigation and key actions, and a minimal accent for notifications or badges. Avoid decoration — every color must have a functional purpose.",
+
   "Data-heavy analytics dashboard":
-    "Generate a professional palette for a complex analytics dashboard. Use a range of distinct, accessible colors for charts and graphs, balanced against a neutral, low-distraction background.",
+    "Generate a complete UI color palette for a complex analytics and business intelligence dashboard. Surface: desktop web app with dense data tables, charts, and KPI cards. Audience: data analysts and operations teams. Mood: professional, precise, trustworthy, dense-but-readable. Use a mid-grey or desaturated blue-grey background so charts pop, clear surface colors for cards and panels, a single primary for interactive controls, and a purposeful set of data colors (success green, warning amber, error red, neutral grey) for metric states.",
+
   "Creative studio admin panel":
-    "Generate an inspiring and modern palette for a creative studio admin tool. Use a sophisticated dark-grey base with artistic accents like terracotta, deep plum, or electric indigo.",
+    "Generate a complete UI color palette for a creative agency's internal project management and asset admin panel. Surface: desktop web app. Audience: designers, art directors, and project managers at a creative studio. Mood: sophisticated, inspiring, modern, slightly expressive. Use a dark graphite or near-black base to let content breathe, a muted terracotta, deep plum, or electric indigo as the primary brand accent, and warm neutrals for text. The palette should feel like a well-designed creative tool — premium but not sterile.",
+
+  "Dark operations control center":
+    "Generate a complete UI color palette for a dark-mode DevOps or infrastructure monitoring dashboard. Surface: desktop web app with real-time metrics, logs, and alert panels. Audience: site reliability engineers and DevOps teams. Mood: focused, high-alert, technical, mission-critical. Use deep charcoal or near-black backgrounds, carbon-grey surfaces for panels, and a sharp cyan or electric green as the primary data accent. Clear alert colors: vivid red for critical errors, amber for warnings, and muted green for healthy states. Maximum readability in low-light environments.",
 };
 
 export default function ChatHeader({
@@ -71,9 +91,12 @@ export default function ChatHeader({
 
   const handlePromptSelect = (label: string) => {
     setIsOpen(false);
-    // Populate the input with a rich, tool-triggering prompt instead of auto-sending
-    const fullPrompt = PROMPT_TEMPLATES[label] ?? label;
-    setChatInput(fullPrompt);
+    // Populate the input with a rich, context-complete prompt.
+    // The [CALL: generate_palette] suffix is a hard directive recognized by the
+    // DIRECTOR_SYSTEM_PROMPT — it ensures the LLM calls the tool immediately
+    // without asking follow-up questions, regardless of how the user edits the text.
+    const basePrompt = PROMPT_TEMPLATES[label] ?? label;
+    setChatInput(`${basePrompt}\n\n[CALL: generate_palette]`);
   };
 
   return (

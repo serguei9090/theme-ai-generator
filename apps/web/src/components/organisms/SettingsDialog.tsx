@@ -193,12 +193,15 @@ export default function SettingsDialog() {
         setDirectorModel((prev) => prev || parsedModels[0]);
         setOllamaConnected(true);
       } catch (error: unknown) {
+        if (signal?.aborted) return;
         setError(`Unable to fetch models: ${getErrorMessage(error)}`);
         setModels([]);
         setModel(providerDefaults.ollama || "");
         setOllamaConnected(false);
       } finally {
-        setConnecting(false);
+        if (!signal?.aborted) {
+          setConnecting(false);
+        }
       }
     },
     [providerDefaults.ollama],
@@ -271,6 +274,7 @@ export default function SettingsDialog() {
           setDirectorModel(providerDefaults.copilot || "");
         }
       } catch (error: unknown) {
+        if (signal?.aborted) return;
         const errorMessage = `Unable to fetch models: ${getErrorMessage(error)}`;
         setError(errorMessage);
         toast.error("Copilot Model Fetch Failed", {
@@ -279,7 +283,9 @@ export default function SettingsDialog() {
         setCopilotModels([]);
         setModel(providerDefaults.copilot || "");
       } finally {
-        setConnecting(false);
+        if (!signal?.aborted) {
+          setConnecting(false);
+        }
       }
     },
     [providerDefaults.copilot, copilotApiKey],
@@ -287,33 +293,26 @@ export default function SettingsDialog() {
 
   React.useEffect(() => {
     const ctrl = new AbortController();
-    if (provider === "ollama") {
-      fetchOllamaModels(ctrl.signal);
-    } else if (provider === "copilot") {
-      fetchCopilotModels(ctrl.signal);
-    } else {
-      setError(null);
-      setModels([]);
-      setOllamaConnected(false);
-      setCopilotModels([]);
-    }
-    return () => ctrl.abort();
-  }, [provider, fetchOllamaModels, fetchCopilotModels]);
+    const needsOllama = provider === "ollama" || directorProvider === "ollama";
+    const needsCopilot =
+      provider === "copilot" || directorProvider === "copilot";
 
-  React.useEffect(() => {
-    const ctrl = new AbortController();
-    if (directorProvider === "ollama") {
+    if (needsOllama) {
       fetchOllamaModels(ctrl.signal);
-    } else if (directorProvider === "copilot") {
+    }
+    if (needsCopilot) {
       fetchCopilotModels(ctrl.signal);
-    } else {
+    }
+
+    if (!needsOllama && !needsCopilot) {
       setError(null);
       setModels([]);
       setOllamaConnected(false);
       setCopilotModels([]);
     }
+
     return () => ctrl.abort();
-  }, [directorProvider, fetchOllamaModels, fetchCopilotModels]);
+  }, [provider, directorProvider, fetchOllamaModels, fetchCopilotModels]);
 
   function handleToggleOllamaConnection() {
     if (ollamaConnected) {

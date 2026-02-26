@@ -1,5 +1,11 @@
 "use client";
-import { MessageSquare, Moon, SlidersHorizontal, Sun } from "lucide-react";
+import {
+  ArrowDownToLine,
+  MessageSquare,
+  Moon,
+  SlidersHorizontal,
+  Sun,
+} from "lucide-react";
 import React from "react";
 import { Button } from "../components/atoms/button";
 import ChatSidebar from "../components/organisms/ChatSidebar";
@@ -167,9 +173,31 @@ function Workspace() {
           </nav>
 
           <div className="rounded-xl border border-border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-            <h2 className="mb-1 text-sm font-semibold text-text">
-              {currentPreview.label} Example
-            </h2>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-text">
+                {currentPreview.label} Example
+              </h2>
+              {appliedPalette && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const json = JSON.stringify(appliedPalette, null, 2);
+                    const blob = new Blob([json], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${currentPreview.id}-palette.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  title="Download palette as JSON"
+                  aria-label="Download palette JSON"
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border bg-background text-text-secondary transition-colors hover:bg-surface hover:text-text"
+                >
+                  <ArrowDownToLine className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
             <p className="mb-3 text-xs text-text-secondary">
               {currentPreview.description}
             </p>

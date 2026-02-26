@@ -62,6 +62,22 @@ export type TweakRequest = {
   copilotApiKey?: string;
 };
 
+export type InterpretColorRequest = {
+  key: string;
+  userPrompt: string;
+  currentPalette: Palette;
+  provider?: ProviderInput;
+  model?: string;
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+  copilotApiKey?: string;
+};
+
+export type InterpretColorResponse = {
+  hex: string;
+  interpretation: string;
+};
+
 export function normalizeProvider(
   provider: ProviderInput | undefined,
 ): Provider {
@@ -160,6 +176,27 @@ export async function tweakThemePalette(
     provider,
     model: request.model,
     allowFallback: request.allowFallback ?? true,
+    geminiApiKey: request.geminiApiKey,
+    openaiApiKey: request.openaiApiKey,
+    copilotApiKey: request.copilotApiKey,
+  });
+}
+
+/**
+ * Step 1 of the two-step single-color-by-prompt pipeline.
+ * Calls the /interpret-color route which uses the LLM to understand the user's
+ * freeform intent and return a precise hex code for the target palette slot.
+ */
+export async function interpretColorForKey(
+  request: InterpretColorRequest,
+): Promise<InterpretColorResponse> {
+  const provider = normalizeProvider(request.provider);
+  return postJson<InterpretColorResponse>("/interpret-color", {
+    key: request.key,
+    userPrompt: request.userPrompt,
+    currentPalette: request.currentPalette,
+    provider,
+    model: request.model,
     geminiApiKey: request.geminiApiKey,
     openaiApiKey: request.openaiApiKey,
     copilotApiKey: request.copilotApiKey,

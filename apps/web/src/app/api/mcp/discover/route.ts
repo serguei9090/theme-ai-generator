@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       model: body.model,
       geminiApiKey: body.geminiApiKey,
       openaiApiKey: body.openaiApiKey,
+      copilotApiKey: body.copilotApiKey,
       history: body.history,
     });
 

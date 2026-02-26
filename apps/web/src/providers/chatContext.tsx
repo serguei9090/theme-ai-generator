@@ -4,6 +4,7 @@ import React from "react";
 import { toast } from "sonner";
 import type {
   AssistantMessageResponse,
+  ForcedTool,
   StyleOption,
 } from "../lib/assistantTypes";
 import type {
@@ -12,8 +13,8 @@ import type {
   ProviderModelDefaults,
 } from "../lib/mcpClient";
 import {
-  generateThemePalette,
   getMcpHealth,
+  interpretColorForKey,
   tweakThemePalette,
 } from "../lib/mcpClient";
 
@@ -26,6 +27,11 @@ type Message = {
   palettes?: Palette[];
   styles?: StyleOption[];
   providerUsed?: string;
+  toolUsed?:
+    | "generate_palette"
+    | "discover_styles"
+    | "tweak_palette"
+    | "director";
 };
 
 type SavedSession = {
@@ -59,7 +65,7 @@ type ChatContextType = {
   appliedPalette: Palette;
   pendingStyles: StyleOption[];
   conversationId: string | null;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, forceTool?: ForcedTool) => Promise<void>;
   selectStyle: (styleId: string) => Promise<void>;
   applyPalette: (palette: Palette) => void;
   tweakOneColor: (key: keyof Palette, hex: string) => Promise<void>;
@@ -211,6 +217,17 @@ async function fetchMcpDefaults() {
   return { serverDefaultProvider, resolvedDefaults };
 }
 
+const FORCED_TOOL_LOADING: Record<ForcedTool, string> = {
+  generate_palette: "Generating your palette...",
+  discover_styles: "Discovering style directions...",
+  tweak_palette: "Tweaking the palette...",
+};
+
+function getLoadingMessage(tool: ForcedTool | null | undefined): string {
+  if (tool) return FORCED_TOOL_LOADING[tool];
+  return "The Creative Director is drafting ideas...";
+}
+
 export function ChatProvider({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -336,7 +353,7 @@ export function ChatProvider({
   );
 
   const sendMessage = React.useCallback(
-    async (text: string) => {
+    async (text: string, forceTool?: ForcedTool) => {
       const id = String(Date.now());
       const trimmed = text.trim();
       if (!trimmed) return;
@@ -344,7 +361,7 @@ export function ChatProvider({
       const userMsg: Message = { id: `${id}-u`, role: "user", text: trimmed };
       setMessages((s) => [...s, userMsg]);
       setLoading(true);
-      setLoadingState("The Creative Director is drafting ideas...");
+      setLoadingState(getLoadingMessage(forceTool));
 
       try {
         const res = await fetch("/api/assistant/message", {
@@ -352,6 +369,7 @@ export function ChatProvider({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: trimmed,
+            forceTool: forceTool || undefined,
             history: messages.map((m) => ({ role: m.role, text: m.text })),
             conversationId: conversationId || undefined,
             paletteEngine: {
@@ -400,6 +418,7 @@ export function ChatProvider({
           palettes: result.palettes,
           styles: result.styles,
           providerUsed: result.providerUsed,
+          toolUsed: result.toolUsed,
         });
       } catch (err) {
         const message =
@@ -549,11 +568,13 @@ export function ChatProvider({
       if (!trimmed) return;
 
       setLoading(true);
+      setLoadingState(`Interpreting your intent for "${key}"...`);
       try {
-        const result = await generateThemePalette({
-          mood: `Update only the ${key} color for this request: ${trimmed}. Keep palette harmony with this current palette: ${JSON.stringify(
-            appliedPalette,
-          )}.`,
+        // ── Step 1: Interpret the user's intent into a precise hex ───────────
+        const intent = await interpretColorForKey({
+          key,
+          userPrompt: trimmed,
+          currentPalette: appliedPalette,
           provider,
           model: model || undefined,
           geminiApiKey: geminiApiKey || undefined,
@@ -561,16 +582,24 @@ export function ChatProvider({
           copilotApiKey: copilotApiKey || undefined,
         });
 
-        const nextPalette: Palette = {
-          ...appliedPalette,
-          [key]: result.palette[key],
-        };
+        setLoadingState(`Applying ${intent.hex} to "${key}"...`);
 
-        setAppliedPalette(nextPalette);
+        // ── Step 2: Apply the resolved hex deterministically via tweakThemePalette ──
+        const result = await tweakThemePalette({
+          palette: appliedPalette,
+          updates: { [key]: intent.hex },
+          provider,
+          model: model || undefined,
+          geminiApiKey: geminiApiKey || undefined,
+          openaiApiKey: openaiApiKey || undefined,
+          copilotApiKey: copilotApiKey || undefined,
+        });
+
+        setAppliedPalette(result.palette);
         pushAssistantMessage({
-          text: `Updated ${key} from prompt "${trimmed}".`,
+          text: `Updated ${key}: ${intent.interpretation}`,
           explain: result.explain,
-          palette: nextPalette,
+          palette: result.palette,
         });
       } catch (err) {
         const message =
@@ -580,6 +609,7 @@ export function ChatProvider({
         pushAssistantMessage({ text: message });
       } finally {
         setLoading(false);
+        setLoadingState(null);
       }
     },
     [

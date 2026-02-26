@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       allowFallback: body.allowFallback,
       geminiApiKey: body.geminiApiKey,
       openaiApiKey: body.openaiApiKey,
+      copilotApiKey: body.copilotApiKey,
       history: body.history,
     });
 

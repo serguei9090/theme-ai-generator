@@ -24,8 +24,9 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       // Reset height to calculate scrollHeight correctly
       textarea.style.height = "auto";
 
-      const singleRowHeight = 20; // text-sm is ~20px line-height
-      const maxHeight = maxRows * singleRowHeight + 16; // 16px padding (py-2)
+      const singleRowHeight = 20; // text-sm line-height ~20px
+      const paddingY = 20; // accounts for top+bottom padding applied via className (e.g. pt-3 pb-1 = 16px, py-2 = 16px, etc.)
+      const maxHeight = maxRows * singleRowHeight + paddingY;
 
       const newHeight = Math.min(textarea.scrollHeight, maxHeight);
       textarea.style.height = `${newHeight}px`;
