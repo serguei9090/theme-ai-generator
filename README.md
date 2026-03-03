@@ -6,7 +6,7 @@ This project is a technical demonstration developed specifically for the **Agent
 ### ⚠️ Legal & Educational Disclaimer
 * **Purpose:** This repository is an academic and competitive submission. It is intended to showcase architectural patterns using GitHub Copilot SDK, and MCP.
 * **Non-Commercial:** This is a non-commercial prototype. No services are being sold, and no unauthorized employment is being conducted through this project.
-* **License:** Open-sourced under the **Apache License 2.0** for community educational purposes.
+* **License:** Open-sourced under the **MIT License** for community educational purposes.
 
 
 [![CI](https://github.com/serguei9090/theme-ai-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/serguei9090/theme-ai-generator/actions/workflows/ci.yml)
