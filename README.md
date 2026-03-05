@@ -24,7 +24,8 @@ Flow:
 - `Creative Apps (GitHub Copilot)`
 
 ### Developers / Team
-- **Serguei Castillo** - [@serguei9090](https://github.com/serguei9090)
+- **Serguei Castillo** - [@serguei9090](https://github.com/serguei9090) — *Developer Collaborator* (Participating strictly for educational/learning purposes. Explicitly listed as ineligible to receive any cash prizes or hackathon compensation).
+
 - **Cinthya Rodriguez** - [@crhdez](https://github.com/crhdez)
 
 ### Project Description (submission-ready draft)
